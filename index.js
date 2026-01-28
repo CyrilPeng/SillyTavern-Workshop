@@ -243,19 +243,28 @@ function createUploadPage() {
 
                         <!-- 聊天数据选择区 -->
                         <div id="chatdata-section" class="data-source-section">
-                            <div class="section-header">
-                                <h4>选择聊天数据</h4>
-                                <div class="section-actions">
-                                    <button id="chat-select-all" class="small-btn">全选</button>
-                                    <button id="chat-deselect-all" class="small-btn">取消</button>
-                                    <button id="chat-refresh" class="small-btn">
-                                        <i class="fa-solid fa-refresh"></i>
-                                    </button>
-                                </div>
+                            <!-- 标签页切换 -->
+                            <div class="chatdata-tabs">
+                                <button class="chatdata-tab active" data-target="localstorage">
+                                    <i class="fa-solid fa-database"></i> LocalStorage
+                                </button>
+                                <button class="chatdata-tab" data-target="indexeddb">
+                                    <i class="fa-solid fa-hard-drive"></i> IndexedDB
+                                </button>
                             </div>
 
-                            <div class="chat-data-subsection">
-                                <h5><i class="fa-solid fa-database"></i> LocalStorage</h5>
+                            <!-- LocalStorage 面板 -->
+                            <div id="localstorage-panel" class="chatdata-panel active">
+                                <div class="section-header">
+                                    <h5>选择 LocalStorage 数据</h5>
+                                    <div class="section-actions">
+                                        <button id="ls-select-all" class="small-btn">全选</button>
+                                        <button id="ls-deselect-all" class="small-btn">取消</button>
+                                        <button id="ls-refresh" class="small-btn">
+                                            <i class="fa-solid fa-refresh"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <div id="localstorage-list" class="checkbox-list">
                                     <div class="loading-spinner">
                                         <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
@@ -263,8 +272,18 @@ function createUploadPage() {
                                 </div>
                             </div>
 
-                            <div class="chat-data-subsection">
-                                <h5><i class="fa-solid fa-hard-drive"></i> IndexedDB</h5>
+                            <!-- IndexedDB 面板 -->
+                            <div id="indexeddb-panel" class="chatdata-panel">
+                                <div class="section-header">
+                                    <h5>选择 IndexedDB 数据</h5>
+                                    <div class="section-actions">
+                                        <button id="idb-select-all" class="small-btn">全选</button>
+                                        <button id="idb-deselect-all" class="small-btn">取消</button>
+                                        <button id="idb-refresh" class="small-btn">
+                                            <i class="fa-solid fa-refresh"></i>
+                                        </button>
+                                    </div>
+                                </div>
                                 <div id="indexeddb-list" class="checkbox-list">
                                     <div class="loading-spinner">
                                         <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
@@ -385,6 +404,15 @@ function bindEvents() {
         const source = $(this).data('source');
         switchDataSource(source);
     });
+
+    // 聊天数据子标签页切换 (LocalStorage / IndexedDB)
+    $(document).on('click', '.chatdata-tab', function() {
+        const target = $(this).data('target');
+        $('.chatdata-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.chatdata-panel').removeClass('active');
+        $(`#${target}-panel`).addClass('active');
+    });
     
     // 字段计数器
     $('#field-name').on('input', function() {
@@ -403,11 +431,16 @@ function bindEvents() {
     $('#wb-select-all').on('click', () => selectAllWorldBook(true));
     $('#wb-deselect-all').on('click', () => selectAllWorldBook(false));
     $('#wb-refresh').on('click', loadWorldBookEntries);
-    
-    // 聊天数据操作按钮
-    $('#chat-select-all').on('click', () => selectAllChatData(true));
-    $('#chat-deselect-all').on('click', () => selectAllChatData(false));
-    $('#chat-refresh').on('click', loadChatData);
+
+    // LocalStorage 操作按钮
+    $('#ls-select-all').on('click', () => selectAllLocalStorage(true));
+    $('#ls-deselect-all').on('click', () => selectAllLocalStorage(false));
+    $('#ls-refresh').on('click', loadLocalStorageData);
+
+    // IndexedDB 操作按钮
+    $('#idb-select-all').on('click', () => selectAllIndexedDB(true));
+    $('#idb-deselect-all').on('click', () => selectAllIndexedDB(false));
+    $('#idb-refresh').on('click', loadIndexedDBData);
     
     // JSON 操作按钮
     $('#copy-json-btn').on('click', copyJsonToClipboard);
@@ -532,7 +565,7 @@ async function loadWorldBookEntries() {
         });
 
     } catch (error) {
-        console.error('[Workshop] 加载世界书失败:', error);
+        console.error('[酒馆创意工坊] 加载世界书失败:', error);
         $list.html('<div class="error-message"><i class="fa-solid fa-exclamation-triangle"></i> 加载失败: ' + escapeHtml(error.message) + '</div>');
     }
 }
@@ -541,20 +574,20 @@ async function loadWorldBookEntries() {
 async function fetchWorldInfo() {
     const allEntries = [];
 
-    console.log('[Workshop] 开始获取世界书数据...');
+    console.log('[酒馆创意工坊] 开始获取世界书数据...');
 
     // 检查 TavernHelper 是否可用
     if (typeof TavernHelper === 'undefined') {
-        console.warn('[Workshop] TavernHelper 未定义');
+        console.warn('[酒馆创意工坊] TavernHelper 未定义');
         return allEntries;
     }
 
     // 使用 TavernHelper.getCharWorldbookNames 获取角色卡绑定的世界书
     const charWorldbooks = TavernHelper.getCharWorldbookNames('current');
-    console.log('[Workshop] 角色卡绑定的世界书:', charWorldbooks);
+    console.log('[酒馆创意工坊] 角色卡绑定的世界书:', charWorldbooks);
 
     if (!charWorldbooks) {
-        console.log('[Workshop] 当前角色卡未绑定世界书');
+        console.log('[酒馆创意工坊] 当前角色卡未绑定世界书');
         return allEntries;
     }
 
@@ -568,7 +601,7 @@ async function fetchWorldInfo() {
     }
 
     if (worldbookNames.length === 0) {
-        console.log('[Workshop] 当前角色卡未绑定任何世界书');
+        console.log('[酒馆创意工坊] 当前角色卡未绑定任何世界书');
         return allEntries;
     }
 
@@ -577,7 +610,7 @@ async function fetchWorldInfo() {
 
     // 遍历所有绑定的世界书
     for (const worldbookName of worldbookNames) {
-        console.log(`[Workshop] 正在加载世界书: ${worldbookName}`);
+        console.log(`[酒馆创意工坊] 正在加载世界书: ${worldbookName}`);
 
         try {
             const result = TavernHelper.getWorldbook(worldbookName);
@@ -588,8 +621,8 @@ async function fetchWorldInfo() {
             } else {
                 entries = result;
             }
-            console.log(`[Workshop] TavernHelper.getWorldbook(${worldbookName}) 返回:`, entries);
-            console.log('[Workshop] 返回类型:', typeof entries, Array.isArray(entries) ? `数组长度: ${entries.length}` : '');
+            console.log(`[酒馆创意工坊] TavernHelper.getWorldbook(${worldbookName}) 返回:`, entries);
+            console.log('[酒馆创意工坊] 返回类型:', typeof entries, Array.isArray(entries) ? `数组长度: ${entries.length}` : '');
 
             if (entries && Array.isArray(entries)) {
                 entries.forEach((entry, index) => {
@@ -602,11 +635,11 @@ async function fetchWorldInfo() {
                 });
             }
         } catch (e) {
-            console.error(`[Workshop] TavernHelper.getWorldbook(${worldbookName}) 调用失败:`, e);
+            console.error(`[酒馆创意工坊] TavernHelper.getWorldbook(${worldbookName}) 调用失败:`, e);
         }
     }
 
-    console.log(`[Workshop] 共获取 ${allEntries.length} 个世界书词条`);
+    console.log(`[酒馆创意工坊] 共获取 ${allEntries.length} 个世界书词条`);
     return allEntries;
 }
 
@@ -619,9 +652,9 @@ async function loadWorldBookByName(worldName, sourceName, allEntries, addedUIDs)
         if (typeof TavernHelper !== 'undefined' && TavernHelper.getWorldbook) {
             try {
                 entries = await TavernHelper.getWorldbook(worldName);
-                console.log(`[Workshop] TavernHelper 加载世界书 ${worldName}:`, entries);
+                console.log(`[酒馆创意工坊] TavernHelper 加载世界书 ${worldName}:`, entries);
             } catch (e) {
-                console.warn(`[Workshop] TavernHelper.getWorldbook 失败:`, e);
+                console.warn(`[酒馆创意工坊] TavernHelper.getWorldbook 失败:`, e);
             }
         }
 
@@ -641,7 +674,7 @@ async function loadWorldBookByName(worldName, sourceName, allEntries, addedUIDs)
                     }
                 }
             } catch (e) {
-                console.warn(`[Workshop] API 获取世界书失败:`, e);
+                console.warn(`[酒馆创意工坊] API 获取世界书失败:`, e);
             }
         }
 
@@ -660,7 +693,7 @@ async function loadWorldBookByName(worldName, sourceName, allEntries, addedUIDs)
             });
         }
     } catch (e) {
-        console.warn(`[Workshop] 加载世界书 ${worldName} 失败:`, e);
+        console.warn(`[酒馆创意工坊] 加载世界书 ${worldName} 失败:`, e);
     }
 }
 
@@ -930,7 +963,7 @@ async function getWorldInfoList() {
         // 优先使用 TavernHelper.getWorldbookNames
         if (typeof TavernHelper !== 'undefined' && TavernHelper.getWorldbookNames) {
             const names = TavernHelper.getWorldbookNames();
-            console.log('[Workshop] TavernHelper 世界书列表:', names);
+            console.log('[酒馆创意工坊] TavernHelper 世界书列表:', names);
             return names || [];
         }
 
@@ -945,7 +978,7 @@ async function getWorldInfoList() {
             return await response.json();
         }
     } catch (e) {
-        console.warn('[Workshop] 获取世界书列表失败:', e);
+        console.warn('[酒馆创意工坊] 获取世界书列表失败:', e);
     }
     return [];
 }
@@ -1010,7 +1043,7 @@ async function loadLocalStorageData() {
         });
 
     } catch (error) {
-        console.error('[Workshop] 加载 localStorage 失败:', error);
+        console.error('[酒馆创意工坊] 加载 localStorage 失败:', error);
         $list.html('<div class="error-message"><i class="fa-solid fa-exclamation-triangle"></i> 加载失败: ' + escapeHtml(error.message) + '</div>');
     }
 }
@@ -1065,7 +1098,7 @@ function getStoreData(dbName, storeName) {
     });
 }
 
-// 加载 IndexedDB 数据 - 使用下拉选择器
+// 加载 IndexedDB 数据 - 使用复选框列表形式（与 LocalStorage 一致）
 async function loadIndexedDBData() {
     const $list = $('#indexeddb-list');
     $list.html('<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> 加载中...</div>');
@@ -1083,135 +1116,90 @@ async function loadIndexedDBData() {
             return;
         }
 
-        // 获取所有数据库列表
+        // 获取所有数据库和表的数据
+        const allItems = [];
         const dbList = await getAllDatabases();
-        console.log('[Workshop] IndexedDB 数据库列表:', dbList);
+        console.log('[酒馆创意工坊] IndexedDB 数据库列表:', dbList);
 
-        if (!dbList || dbList.length === 0) {
-            $list.html('<div class="empty-message"><i class="fa-solid fa-inbox"></i> 暂无 IndexedDB 数据库</div>');
+        for (const dbName of dbList) {
+            try {
+                const stores = await getObjectStores(dbName);
+                for (const storeName of stores) {
+                    const itemId = `idb-${dbName}-${storeName}`;
+                    allItems.push({
+                        id: itemId,
+                        dbName: dbName,
+                        storeName: storeName,
+                        displayName: `${dbName} / ${storeName}`
+                    });
+                }
+            } catch (e) {
+                console.warn(`[酒馆创意工坊] 读取数据库 ${dbName} 失败:`, e);
+            }
+        }
+
+        if (allItems.length === 0) {
+            $list.html('<div class="empty-message"><i class="fa-solid fa-inbox"></i> 暂无 IndexedDB 数据</div>');
             return;
         }
 
-        // 构建下拉选择器 UI
-        let html = `
-            <div class="idb-selector-container">
-                <div class="idb-selector-row">
-                    <label>选择数据库:</label>
-                    <select id="idb_db_selector" class="text_pole">
-                        <option value="">-- 请选择 --</option>
-                        ${dbList.map(name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="idb-selector-row">
-                    <label>选择数据表:</label>
-                    <select id="idb_store_selector" class="text_pole">
-                        <option value="">-- 请先选择数据库 --</option>
-                    </select>
-                </div>
-                <div class="idb-selector-row">
-                    <button id="idb_read_btn" class="menu_button">
-                        <i class="fa-solid fa-eye"></i> 读取数据
-                    </button>
-                    <button id="idb_select_btn" class="menu_button" disabled>
-                        <i class="fa-solid fa-check"></i> 选中此数据
-                    </button>
-                </div>
-                <div id="idb_data_preview" class="idb-data-preview" style="display: none;">
-                    <div class="preview-header">
-                        <span>数据预览</span>
-                        <small id="idb_data_count"></small>
-                    </div>
-                    <pre id="idb_data_content" style="max-height: 200px; overflow: auto; background: #1a1a1a; color: #00ff00; padding: 8px; border-radius: 4px; font-size: 12px;"></pre>
-                </div>
-            </div>
-        `;
+        let html = `<div class="list-header"><small>共 ${allItems.length} 个数据表</small></div>`;
+        allItems.forEach((item) => {
+            const checked = currentState.selectedIndexedDBItems.has(item.id) ? 'checked' : '';
+            html += `
+                <label class="checkbox-item" data-id="${escapeHtml(item.id)}" data-db="${escapeHtml(item.dbName)}" data-store="${escapeHtml(item.storeName)}">
+                    <input type="checkbox" ${checked} />
+                    <span class="checkbox-label">
+                        <strong>${escapeHtml(item.dbName)}</strong>
+                        <span class="entry-key">${escapeHtml(item.storeName)}</span>
+                    </span>
+                </label>
+            `;
+        });
 
         $list.html(html);
 
-        // 监听数据库选择变化
-        $('#idb_db_selector').on('change', async function() {
-            const dbName = $(this).val();
-            const $storeSelector = $('#idb_store_selector');
-            const $selectBtn = $('#idb_select_btn');
+        // 存储所有项目供后续使用
+        currentState.allIDBItems = allItems;
 
-            if (!dbName) {
-                $storeSelector.html('<option value="">-- 请先选择数据库 --</option>');
-                $selectBtn.prop('disabled', true);
-                $('#idb_data_preview').hide();
-                return;
-            }
+        // 绑定选择事件
+        $list.find('input[type="checkbox"]').on('change', async function() {
+            const $item = $(this).closest('.checkbox-item');
+            const id = $item.data('id');
+            const dbName = $item.data('db');
+            const storeName = $item.data('store');
 
-            try {
-                $storeSelector.html('<option value="">加载中...</option>');
-                const stores = await getObjectStores(dbName);
-                console.log(`[Workshop] 数据库 ${dbName} 的表:`, stores);
-
-                if (stores.length === 0) {
-                    $storeSelector.html('<option value="">-- 无数据表 --</option>');
-                } else {
-                    $storeSelector.html(
-                        '<option value="">-- 请选择 --</option>' +
-                        stores.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')
-                    );
+            if (this.checked) {
+                // 选中时加载数据
+                try {
+                    const data = await getStoreData(dbName, storeName);
+                    currentState.selectedIndexedDBItems.add(id);
+                    // 存储数据供导出使用
+                    if (!currentState.idbDataCache) {
+                        currentState.idbDataCache = {};
+                    }
+                    currentState.idbDataCache[id] = {
+                        dbName: dbName,
+                        storeName: storeName,
+                        data: data
+                    };
+                } catch (e) {
+                    console.error('[酒馆创意工坊] 加载 IndexedDB 数据失败:', e);
+                    $(this).prop('checked', false);
+                    toastr.error('加载数据失败: ' + e.message);
+                    return;
                 }
-            } catch (err) {
-                console.error('[Workshop] 获取表列表失败:', err);
-                $storeSelector.html('<option value="">-- 读取失败 --</option>');
+            } else {
+                currentState.selectedIndexedDBItems.delete(id);
+                if (currentState.idbDataCache) {
+                    delete currentState.idbDataCache[id];
+                }
             }
-        });
-
-        // 监听读取按钮
-        $('#idb_read_btn').on('click', async function() {
-            const dbName = $('#idb_db_selector').val();
-            const storeName = $('#idb_store_selector').val();
-            const $preview = $('#idb_data_preview');
-            const $content = $('#idb_data_content');
-            const $count = $('#idb_data_count');
-            const $selectBtn = $('#idb_select_btn');
-
-            if (!dbName || !storeName) {
-                toastr.warning('请先选择数据库和数据表');
-                return;
-            }
-
-            try {
-                $content.text('加载中...');
-                $preview.show();
-
-                const data = await getStoreData(dbName, storeName);
-                console.log('[Workshop] 读取到的数据:', data);
-
-                $count.text(`共 ${data.length} 条记录`);
-                $content.text(JSON.stringify(data, null, 2));
-                $selectBtn.prop('disabled', false);
-
-                // 存储当前选中的数据信息
-                currentState.currentIDBSelection = {
-                    dbName: dbName,
-                    storeName: storeName,
-                    data: data
-                };
-
-            } catch (err) {
-                console.error('[Workshop] 读取数据失败:', err);
-                $content.text('读取失败: ' + err.message);
-                $selectBtn.prop('disabled', true);
-            }
-        });
-
-        // 监听选中按钮
-        $('#idb_select_btn').on('click', function() {
-            if (currentState.currentIDBSelection) {
-                const { dbName, storeName } = currentState.currentIDBSelection;
-                const id = `idb-${dbName}-${storeName}`;
-                currentState.selectedIndexedDBItems.add(id);
-                toastr.success(`已选中: ${dbName} / ${storeName}`);
-                updateFilePreview();
-            }
+            updateFilePreview();
         });
 
     } catch (error) {
-        console.error('[Workshop] 加载 IndexedDB 失败:', error);
+        console.error('[酒馆创意工坊] 加载 IndexedDB 失败:', error);
         $list.html('<div class="error-message"><i class="fa-solid fa-exclamation-triangle"></i> 加载失败: ' + escapeHtml(error.message) + '</div>');
     }
 }
@@ -1320,7 +1308,7 @@ async function getIndexedDBData() {
             }
         }
     } catch (e) {
-        console.warn('[Workshop] IndexedDB 访问受限:', e);
+        console.warn('[酒馆创意工坊] IndexedDB 访问受限:', e);
     }
     
     return results;
@@ -1365,19 +1353,23 @@ async function updateFilePreview() {
         exportData.paths.localStorage.push(key);
     });
 
-    // 收集 IndexedDB 数据
-    if (currentState.currentIDBSelection) {
-        const { dbName, storeName, data } = currentState.currentIDBSelection;
-        exportData.indexedDB.push({
-            database: dbName,
-            store: storeName,
-            data: data
-        });
-        // 记录路径信息
-        exportData.paths.indexedDB.push({
-            database: dbName,
-            store: storeName
-        });
+    // 收集 IndexedDB 数据（使用缓存）
+    if (currentState.idbDataCache) {
+        for (const id of currentState.selectedIndexedDBItems) {
+            const cached = currentState.idbDataCache[id];
+            if (cached) {
+                exportData.indexedDB.push({
+                    database: cached.dbName,
+                    store: cached.storeName,
+                    data: cached.data
+                });
+                // 记录路径信息
+                exportData.paths.indexedDB.push({
+                    database: cached.dbName,
+                    store: cached.storeName
+                });
+            }
+        }
     }
 
     // 更新预览
@@ -1403,7 +1395,7 @@ async function loadWorkshopData() {
         renderWorkshopResults(data);
         
     } catch (error) {
-        console.error('[Workshop] 加载创意工坊数据失败:', error);
+        console.error('[酒馆创意工坊] 加载创意工坊数据失败:', error);
         $results.html(`
             <div class="error-message">
                 <i class="fa-solid fa-exclamation-triangle"></i>
@@ -1702,7 +1694,7 @@ async function downloadWorkshopItem(index) {
         showToast('下载完成！', 'success');
         
     } catch (error) {
-        console.error('[Workshop] 下载失败:', error);
+        console.error('[酒馆创意工坊] 下载失败:', error);
         showToast('下载失败: ' + error.message, 'error');
     }
 }
@@ -1748,7 +1740,7 @@ async function handleInject() {
         selectedInjectIndex = null;
         
     } catch (error) {
-        console.error('[Workshop] 注入失败:', error);
+        console.error('[酒馆创意工坊] 注入失败:', error);
         showToast('注入失败: ' + error.message, 'error');
     }
 }
@@ -1786,20 +1778,20 @@ async function injectToWorldBook(data) {
         throw new Error('没有可用的世界书，请先创建或绑定一个世界书');
     }
 
-    console.log('[Workshop] 注入世界书:', worldbookName);
-    console.log('[Workshop] 要注入的词条:', data.worldBook);
+    console.log('[酒馆创意工坊] 注入世界书:', worldbookName);
+    console.log('[酒馆创意工坊] 要注入的词条:', data.worldBook);
 
     // 将导出格式转换为 TavernHelper WorldbookEntry 格式
     const newEntries = data.worldBook.map(entry => convertToTavernHelperFormat(entry));
 
-    console.log('[Workshop] 转换后的词条:', newEntries);
+    console.log('[酒馆创意工坊] 转换后的词条:', newEntries);
 
     try {
         const result = await TavernHelper.createWorldbookEntries(worldbookName, newEntries, { render: 'debounced' });
-        console.log('[Workshop] 注入成功:', result);
+        console.log('[酒馆创意工坊] 注入成功:', result);
         return result;
     } catch (e) {
-        console.error('[Workshop] 注入世界书失败:', e);
+        console.error('[酒馆创意工坊] 注入世界书失败:', e);
         throw new Error(`注入世界书失败: ${e.message}`);
     }
 }
@@ -1817,10 +1809,10 @@ async function injectToChatData(data) {
                 try {
                     const value = data.localStorage[key];
                     localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value));
-                    console.log(`[Workshop] localStorage 写入成功: ${key}`);
+                    console.log(`[酒馆创意工坊] localStorage 写入成功: ${key}`);
                     successCount++;
                 } catch (e) {
-                    console.warn('[Workshop] 写入 localStorage 失败:', key, e);
+                    console.warn('[酒馆创意工坊] 写入 localStorage 失败:', key, e);
                     failCount++;
                 }
             }
@@ -1835,10 +1827,10 @@ async function injectToChatData(data) {
             if (database && store && storeData) {
                 try {
                     await writeToIndexedDB(database, store, storeData);
-                    console.log(`[Workshop] IndexedDB 写入成功: ${database}/${store}`);
+                    console.log(`[酒馆创意工坊] IndexedDB 写入成功: ${database}/${store}`);
                     successCount++;
                 } catch (e) {
-                    console.warn(`[Workshop] 写入 IndexedDB 失败: ${database}/${store}`, e);
+                    console.warn(`[酒馆创意工坊] 写入 IndexedDB 失败: ${database}/${store}`, e);
                     failCount++;
                 }
             }
@@ -1997,7 +1989,7 @@ async function handleUpload() {
         clearUploadForm();
         
     } catch (error) {
-        console.error('[Workshop] 上传失败:', error);
+        console.error('[酒馆创意工坊] 上传失败:', error);
         showToast('上传失败: ' + error.message, 'error');
     } finally {
         $('#upload-submit-btn').prop('disabled', false).html('<i class="fa-solid fa-cloud-arrow-up"></i> 上传到创意工坊');
@@ -2131,12 +2123,10 @@ function selectAllWorldBook(select) {
     updateFilePreview();
 }
 
-function selectAllChatData(select) {
-    $('#localstorage-list input[type="checkbox"], #indexeddb-list input[type="checkbox"]')
+function selectAllLocalStorage(select) {
+    $('#localstorage-list input[type="checkbox"]')
         .prop('checked', select).each(function() {
             const key = $(this).closest('.checkbox-item').data('key');
-            const id = $(this).closest('.checkbox-item').data('id');
-            
             if (key) {
                 if (select) {
                     currentState.selectedLocalStorageKeys.add(key);
@@ -2144,15 +2134,45 @@ function selectAllChatData(select) {
                     currentState.selectedLocalStorageKeys.delete(key);
                 }
             }
-            
-            if (id) {
-                if (select) {
+        });
+    updateFilePreview();
+}
+
+async function selectAllIndexedDB(select) {
+    const $checkboxes = $('#indexeddb-list input[type="checkbox"]');
+
+    for (const checkbox of $checkboxes) {
+        const $item = $(checkbox).closest('.checkbox-item');
+        const id = $item.data('id');
+        const dbName = $item.data('db');
+        const storeName = $item.data('store');
+
+        if (select) {
+            if (!currentState.selectedIndexedDBItems.has(id)) {
+                try {
+                    const data = await getStoreData(dbName, storeName);
                     currentState.selectedIndexedDBItems.add(id);
-                } else {
-                    currentState.selectedIndexedDBItems.delete(id);
+                    if (!currentState.idbDataCache) {
+                        currentState.idbDataCache = {};
+                    }
+                    currentState.idbDataCache[id] = {
+                        dbName: dbName,
+                        storeName: storeName,
+                        data: data
+                    };
+                    $(checkbox).prop('checked', true);
+                } catch (e) {
+                    console.error('[酒馆创意工坊] 加载 IndexedDB 数据失败:', e);
                 }
             }
-        });
+        } else {
+            currentState.selectedIndexedDBItems.delete(id);
+            if (currentState.idbDataCache) {
+                delete currentState.idbDataCache[id];
+            }
+            $(checkbox).prop('checked', false);
+        }
+    }
     updateFilePreview();
 }
 

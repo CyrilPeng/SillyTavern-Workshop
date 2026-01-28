@@ -161,9 +161,11 @@
 }
 
 /* ==================== 上传页面 ==================== */
+/* 修复点 1：确保 Grid 只有一行，且高度受限 */
 .upload-container {
     display: grid;
     grid-template-columns: minmax(280px, 400px) 1fr;
+    grid-template-rows: 1fr; /* 新增：强制行高填满父容器 */
     height: 100%;
     max-height: calc(100vh - 180px);
     overflow: hidden;
@@ -184,10 +186,13 @@
     gap: 8px;
 }
 
+/* 修复点 2：Grid 的子元素必须设置为 min-height: 0 才能在内部滚动 */
 .upload-data-section {
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    min-height: 0; /* 关键修复：允许 grid item 收缩，否则会被内容撑开 */
+    height: 100%;  /* 关键修复：占满 grid 单元格 */
 }
 
 /* 数据内容区域：左右布局 */
@@ -205,6 +210,7 @@
     flex-direction: column;
     overflow: hidden;
     border-right: 1px solid var(--workshop-border);
+    min-height: 0;
 }
 
 /* 右侧文件预览面板 */
@@ -214,6 +220,7 @@
     flex-direction: column;
     padding: 16px;
     overflow: hidden;
+    min-height: 0;
 }
 
 .file-preview-panel .json-preview {
@@ -341,10 +348,101 @@
     flex: 1;
     overflow: hidden;
     padding: 16px;
+    min-height: 0;
 }
 
 .data-source-section.active {
     display: flex;
+}
+
+/* 世界书区域 */
+#worldbook-section {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+#worldbook-section.active {
+    display: flex;
+}
+
+/* 世界书区域 */
+#worldbook-section .checkbox-list {
+    flex: 1;
+    min-height: 0;
+    height: 100%; /* 新增：给一个具体的高度参考 */
+    /* max-height: none;  <-- 删除这行！它导致列表无限长而不出现滚动条 */
+    overflow-y: auto !important; 
+}
+
+/* 聊天数据区域 - 标签页切换形式 */
+#chatdata-section {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    min-height: 0;
+}
+
+#chatdata-section.active {
+    display: flex;
+}
+
+/* 聊天数据子标签页 */
+.chatdata-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.chatdata-tab {
+    flex: 1;
+    padding: 10px 16px;
+    border: none;
+    background: var(--workshop-surface);
+    color: var(--workshop-text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: var(--workshop-radius-sm);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.chatdata-tab:hover {
+    background: var(--workshop-surface-hover);
+    color: var(--workshop-text);
+}
+
+.chatdata-tab.active {
+    background: var(--workshop-primary);
+    color: white;
+}
+
+/* 聊天数据面板 */
+.chatdata-panel {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.chatdata-panel.active {
+    display: flex;
+}
+
+.chatdata-panel .checkbox-list {
+    flex: 1;
+    min-height: 0;
+    height: 100%; /* 新增 */
+    /* max-height: none; <-- 删除这行 */
+    overflow-y: auto !important;
 }
 
 .section-header {
@@ -388,11 +486,42 @@
 /* ==================== 复选框列表 ==================== */
 .checkbox-list {
     flex: 1;
-    overflow-y: auto;
+    overflow-y: auto !important;
     background: var(--workshop-bg);
     border-radius: var(--workshop-radius-sm);
     padding: 8px;
-    min-height: 100px;
+    min-height: 0;
+    max-height: 100%;
+    /* 强制显示滚动条 */
+    scrollbar-width: thin;
+    scrollbar-color: var(--workshop-primary) var(--workshop-surface);
+}
+
+/* 滚动条样式 - WebKit浏览器 */
+.checkbox-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.checkbox-list::-webkit-scrollbar-track {
+    background: var(--workshop-surface);
+    border-radius: 4px;
+}
+
+.checkbox-list::-webkit-scrollbar-thumb {
+    background: var(--workshop-primary);
+    border-radius: 4px;
+}
+
+.checkbox-list::-webkit-scrollbar-thumb:hover {
+    background: var(--workshop-primary-hover);
+}
+
+.checkbox-list .list-header {
+    padding: 4px 8px;
+    color: var(--workshop-text-muted);
+    font-size: 12px;
+    border-bottom: 1px solid var(--workshop-border);
+    margin-bottom: 4px;
 }
 
 .checkbox-item {
@@ -445,13 +574,32 @@
 
 /* ==================== 聊天数据子区域 ==================== */
 .chat-data-subsection {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
 }
 
-.chat-data-subsection h5 {
-    margin: 0 0 8px;
+.chat-data-subsection:last-child {
+    margin-bottom: 0;
+}
+
+.chat-data-subsection .section-header {
+    margin-bottom: 8px;
+}
+
+.chat-data-subsection .section-header h5 {
+    margin: 0;
     color: var(--workshop-text);
     font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.chat-data-subsection .checkbox-list {
+    min-height: 80px;
+    max-height: 180px;
+    overflow-y: auto;
 }
 
 /* ==================== 文件预览区 ==================== */
@@ -466,7 +614,7 @@
 
 .json-preview {
     flex: 1;
-    min-height: 150px;
+    min-height: 0;
     padding: 14px;
     border: 2px solid var(--workshop-border);
     border-radius: var(--workshop-radius-sm);
@@ -476,6 +624,27 @@
     font-size: 12px;
     line-height: 1.5;
     resize: none;
+    overflow-y: auto !important;
+    scrollbar-width: thin;
+    scrollbar-color: var(--workshop-primary) var(--workshop-surface);
+}
+
+.json-preview::-webkit-scrollbar {
+    width: 8px;
+}
+
+.json-preview::-webkit-scrollbar-track {
+    background: var(--workshop-surface);
+    border-radius: 4px;
+}
+
+.json-preview::-webkit-scrollbar-thumb {
+    background: var(--workshop-primary);
+    border-radius: 4px;
+}
+
+.json-preview::-webkit-scrollbar-thumb:hover {
+    background: var(--workshop-primary-hover);
 }
 
 .json-preview:focus {
@@ -529,8 +698,7 @@
 /* ==================== 下载页面 ==================== */
 .download-container {
     padding: 24px;
-    height: 100%;
-    max-height: calc(100vh - 180px);
+    flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -539,8 +707,9 @@
 .search-filter-section {
     display: flex;
     gap: 16px;
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .search-box {
@@ -579,25 +748,38 @@
 }
 
 .filter-options select {
-    padding: 14px 16px;
+    padding: 12px 36px 12px 16px;
     border: 2px solid var(--workshop-border);
     border-radius: var(--workshop-radius-sm);
-    background: var(--workshop-surface);
+    background: var(--workshop-surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
     color: var(--workshop-text);
     font-size: 14px;
     cursor: pointer;
+    text-align: center;
+    text-align-last: center;
+    min-width: 130px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.filter-options select:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
 }
 
 /* ==================== 结果网格 ==================== */
 .workshop-results {
     flex: 1;
     overflow-y: auto;
+    padding-top: 8px;
 }
 
 .results-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 0.75fr));
     gap: 20px;
+    justify-content: center;
 }
 
 .workshop-item {
@@ -606,6 +788,9 @@
     padding: 20px;
     transition: all 0.2s;
     border: 2px solid transparent;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
 }
 
 .workshop-item:hover {
@@ -694,13 +879,25 @@
 
 .item-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+    align-items: center;
 }
 
 .item-actions .workshop-btn {
     flex: 1;
-    padding: 10px 16px;
-    font-size: 13px;
+    padding: 10px 8px;
+    font-size: 12px;
+    min-height: 40px;
+    height: 40px;
+    box-sizing: border-box;
+    width: auto;
+    margin-top: 0;
+}
+
+.item-actions .workshop-btn i {
+    font-size: 12px;
 }
 
 /* ==================== 注入选项 ==================== */
@@ -954,15 +1151,68 @@
     }
 
     .upload-container {
+        display: block;
         height: auto;
         max-height: none;
-        min-height: calc(100vh - 120px);
+        min-height: auto;
+        overflow: visible;
     }
 
     .upload-form-section {
         padding: 16px;
-        max-height: 40vh;
-        overflow-y: auto;
+        max-height: none;
+        overflow: visible;
+        border-right: none;
+        border-bottom: 1px solid var(--workshop-border);
+    }
+
+    .upload-data-section {
+        display: block;
+    }
+
+    .data-source-tabs {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        background: var(--workshop-surface);
+    }
+
+    .data-content-wrapper {
+        display: block;
+    }
+
+    .data-select-panel {
+        max-height: 350px;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--workshop-border);
+        overflow: hidden;
+    }
+
+    .data-source-section {
+        max-height: 300px;
+        min-height: auto;
+        padding: 12px;
+        overflow: hidden;
+    }
+
+    .data-source-section .checkbox-list {
+        max-height: 200px;
+        min-height: 100px;
+    }
+
+    .chat-data-subsection .checkbox-list {
+        max-height: 200px;
+        min-height: 100px;
+    }
+
+    .file-preview-panel {
+        padding: 12px;
+        min-height: 180px;
+    }
+
+    .file-preview-panel .json-preview {
+        min-height: 150px;
     }
 
     .download-container {
@@ -1063,16 +1313,6 @@
     .data-source-section {
         padding: 12px;
     }
-
-    .data-select-panel {
-        max-height: 30vh;
-        min-height: 120px;
-    }
-
-    .file-preview-panel {
-        padding: 12px;
-        min-height: 120px;
-    }
 }
 
 /* 超小屏幕 (手机竖屏) */
@@ -1111,12 +1351,14 @@
     }
 
     .item-actions {
-        flex-direction: column;
-        gap: 8px;
+        flex-direction: row;
+        gap: 6px;
     }
 
     .item-actions .workshop-btn {
-        width: 100%;
+        flex: 1;
+        padding: 8px 10px;
+        font-size: 11px;
     }
 
     .section-header {
@@ -1360,23 +1602,24 @@
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     background: rgba(0, 0, 0, 0.8);
     backdrop-filter: blur(4px);
-    z-index: 999999;
+    z-index: 9999999;
     display: flex;
     align-items: center;
     justify-content: center;
     animation: fadeIn 0.2s ease;
+    padding: 20px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
 .workshop-modal-content {
-    width: 90%;
+    width: 100%;
     max-width: 600px;
-    max-height: 80vh;
+    max-height: calc(100vh - 40px);
     background: var(--workshop-bg);
     border-radius: var(--workshop-radius);
     box-shadow: var(--workshop-shadow);
@@ -1384,6 +1627,7 @@
     flex-direction: column;
     overflow: hidden;
     animation: slideUp 0.3s ease;
+    margin: auto;
 }
 
 .modal-header {
@@ -1425,6 +1669,26 @@
     flex: 1;
     padding: 20px;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--workshop-border) var(--workshop-bg);
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: var(--workshop-bg);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: var(--workshop-border);
+    border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--workshop-secondary);
 }
 
 .modal-detail-section {
@@ -1448,9 +1712,14 @@
 
 /* 移动端弹窗适配 */
 @media (max-width: 768px) {
+    .workshop-modal {
+        padding: 10px;
+    }
+
     .workshop-modal-content {
-        width: 95%;
-        max-height: 85vh;
+        width: 100%;
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
     }
 
     .modal-header {
@@ -1467,7 +1736,13 @@
 
     .modal-footer {
         padding: 12px 16px;
-        flex-direction: column;
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .modal-footer .workshop-btn {
+        padding: 10px 12px;
+        font-size: 13px;
     }
 }
 
