@@ -161,11 +161,9 @@
 }
 
 /* ==================== 上传页面 ==================== */
-/* 修复点 1：确保 Grid 只有一行，且高度受限 */
 .upload-container {
     display: grid;
     grid-template-columns: minmax(280px, 400px) 1fr;
-    grid-template-rows: 1fr; /* 新增：强制行高填满父容器 */
     height: 100%;
     max-height: calc(100vh - 180px);
     overflow: hidden;
@@ -186,13 +184,10 @@
     gap: 8px;
 }
 
-/* 修复点 2：Grid 的子元素必须设置为 min-height: 0 才能在内部滚动 */
 .upload-data-section {
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    min-height: 0; /* 关键修复：允许 grid item 收缩，否则会被内容撑开 */
-    height: 100%;  /* 关键修复：占满 grid 单元格 */
 }
 
 /* 数据内容区域：左右布局 */
@@ -368,13 +363,11 @@
     display: flex;
 }
 
-/* 世界书区域 */
 #worldbook-section .checkbox-list {
     flex: 1;
     min-height: 0;
-    height: 100%; /* 新增：给一个具体的高度参考 */
-    /* max-height: none;  <-- 删除这行！它导致列表无限长而不出现滚动条 */
-    overflow-y: auto !important; 
+    max-height: none;
+    overflow-y: auto;
 }
 
 /* 聊天数据区域 - 标签页切换形式 */
@@ -440,9 +433,36 @@
 .chatdata-panel .checkbox-list {
     flex: 1;
     min-height: 0;
-    height: 100%; /* 新增 */
-    /* max-height: none; <-- 删除这行 */
-    overflow-y: auto !important;
+    max-height: none;
+    overflow-y: auto;
+}
+
+/* IndexedDB 表选择器 */
+.idb-store-selector {
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.idb-store-selector select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.idb-store-selector select:hover {
+    border-color: var(--workshop-primary);
+}
+
+.idb-store-selector select:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
 .section-header {

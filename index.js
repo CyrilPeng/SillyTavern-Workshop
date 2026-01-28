@@ -284,10 +284,13 @@ function createUploadPage() {
                                         </button>
                                     </div>
                                 </div>
+                                <div class="idb-store-selector">
+                                    <select id="idb-store-select" class="form-select">
+                                        <option value="">-- 请先选择数据表 --</option>
+                                    </select>
+                                </div>
                                 <div id="indexeddb-list" class="checkbox-list">
-                                    <div class="loading-spinner">
-                                        <i class="fa-solid fa-spinner fa-spin"></i> 加载中...
-                                    </div>
+                                    <div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请先从上方下拉框选择数据表</div>
                                 </div>
                             </div>
                         </div>
@@ -1098,14 +1101,18 @@ function getStoreData(dbName, storeName) {
     });
 }
 
-// 加载 IndexedDB 数据 - 使用复选框列表形式（与 LocalStorage 一致）
+// 加载 IndexedDB 数据库和表列表到下拉框
 async function loadIndexedDBData() {
+    const $select = $('#idb-store-select');
     const $list = $('#indexeddb-list');
-    $list.html('<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> 加载中...</div>');
+
+    $select.html('<option value="">加载中...</option>');
+    $list.html('<div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请先从上方下拉框选择数据表</div>');
 
     try {
         // 检查 indexedDB.databases() 是否可用
         if (typeof indexedDB.databases !== 'function') {
+            $select.html('<option value="">浏览器不支持</option>');
             $list.html(`
                 <div class="info-message">
                     <i class="fa-solid fa-info-circle"></i>
@@ -1116,8 +1123,8 @@ async function loadIndexedDBData() {
             return;
         }
 
-        // 获取所有数据库和表的数据
-        const allItems = [];
+        // 获取所有数据库和表
+        const allStores = [];
         const dbList = await getAllDatabases();
         console.log('[酒馆创意工坊] IndexedDB 数据库列表:', dbList);
 
@@ -1125,11 +1132,10 @@ async function loadIndexedDBData() {
             try {
                 const stores = await getObjectStores(dbName);
                 for (const storeName of stores) {
-                    const itemId = `idb-${dbName}-${storeName}`;
-                    allItems.push({
-                        id: itemId,
+                    allStores.push({
                         dbName: dbName,
                         storeName: storeName,
+                        value: `${dbName}|||${storeName}`,
                         displayName: `${dbName} / ${storeName}`
                     });
                 }
@@ -1138,20 +1144,66 @@ async function loadIndexedDBData() {
             }
         }
 
-        if (allItems.length === 0) {
+        // 存储所有表供后续使用
+        currentState.allIDBStores = allStores;
+
+        if (allStores.length === 0) {
+            $select.html('<option value="">暂无数据表</option>');
             $list.html('<div class="empty-message"><i class="fa-solid fa-inbox"></i> 暂无 IndexedDB 数据</div>');
             return;
         }
 
-        let html = `<div class="list-header"><small>共 ${allItems.length} 个数据表</small></div>`;
-        allItems.forEach((item) => {
-            const checked = currentState.selectedIndexedDBItems.has(item.id) ? 'checked' : '';
+        // 填充下拉框
+        let optionsHtml = '<option value="">-- 请选择数据表 (' + allStores.length + ' 个) --</option>';
+        allStores.forEach(store => {
+            optionsHtml += `<option value="${escapeHtml(store.value)}">${escapeHtml(store.displayName)}</option>`;
+        });
+        $select.html(optionsHtml);
+
+        // 绑定下拉框选择事件
+        $select.off('change').on('change', function() {
+            const selected = $(this).val();
+            if (!selected) {
+                $list.html('<div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请先从上方下拉框选择数据表</div>');
+                return;
+            }
+            const [dbName, storeName] = selected.split('|||');
+            loadIndexedDBKeys(dbName, storeName);
+        });
+
+    } catch (error) {
+        console.error('[酒馆创意工坊] 加载 IndexedDB 失败:', error);
+        $select.html('<option value="">加载失败</option>');
+        $list.html('<div class="error-message"><i class="fa-solid fa-exclamation-triangle"></i> 加载失败: ' + escapeHtml(error.message) + '</div>');
+    }
+}
+
+// 加载指定表的所有 Key 到复选框列表
+async function loadIndexedDBKeys(dbName, storeName) {
+    const $list = $('#indexeddb-list');
+    $list.html('<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> 加载键值中...</div>');
+
+    try {
+        const keys = await getStoreKeys(dbName, storeName);
+
+        if (keys.length === 0) {
+            $list.html('<div class="empty-message"><i class="fa-solid fa-inbox"></i> 该数据表为空</div>');
+            return;
+        }
+
+        // 存储当前表信息
+        currentState.currentIDBStore = { dbName, storeName };
+
+        let html = `<div class="list-header"><small>${escapeHtml(dbName)} / ${escapeHtml(storeName)} - 共 ${keys.length} 个键</small></div>`;
+        keys.forEach((key, index) => {
+            const keyStr = typeof key === 'object' ? JSON.stringify(key) : String(key);
+            const keyId = `idb-key-${dbName}-${storeName}-${index}`;
+            const checked = currentState.selectedIndexedDBItems.has(keyId) ? 'checked' : '';
             html += `
-                <label class="checkbox-item" data-id="${escapeHtml(item.id)}" data-db="${escapeHtml(item.dbName)}" data-store="${escapeHtml(item.storeName)}">
+                <label class="checkbox-item" data-id="${escapeHtml(keyId)}" data-db="${escapeHtml(dbName)}" data-store="${escapeHtml(storeName)}" data-key-index="${index}">
                     <input type="checkbox" ${checked} />
                     <span class="checkbox-label">
-                        <strong>${escapeHtml(item.dbName)}</strong>
-                        <span class="entry-key">${escapeHtml(item.storeName)}</span>
+                        <strong>${escapeHtml(keyStr)}</strong>
                     </span>
                 </label>
             `;
@@ -1159,49 +1211,103 @@ async function loadIndexedDBData() {
 
         $list.html(html);
 
-        // 存储所有项目供后续使用
-        currentState.allIDBItems = allItems;
+        // 存储当前表的所有 keys 供后续使用
+        currentState.currentIDBKeys = keys;
 
         // 绑定选择事件
         $list.find('input[type="checkbox"]').on('change', async function() {
             const $item = $(this).closest('.checkbox-item');
-            const id = $item.data('id');
-            const dbName = $item.data('db');
-            const storeName = $item.data('store');
+            const keyId = $item.data('id');
+            const db = $item.data('db');
+            const store = $item.data('store');
+            const keyIndex = $item.data('key-index');
+            const key = currentState.currentIDBKeys[keyIndex];
 
             if (this.checked) {
-                // 选中时加载数据
+                // 选中时加载具体数据
                 try {
-                    const data = await getStoreData(dbName, storeName);
-                    currentState.selectedIndexedDBItems.add(id);
-                    // 存储数据供导出使用
+                    const value = await getStoreValue(db, store, key);
+                    currentState.selectedIndexedDBItems.add(keyId);
+
+                    // 初始化缓存
                     if (!currentState.idbDataCache) {
                         currentState.idbDataCache = {};
                     }
-                    currentState.idbDataCache[id] = {
-                        dbName: dbName,
-                        storeName: storeName,
-                        data: data
+                    currentState.idbDataCache[keyId] = {
+                        dbName: db,
+                        storeName: store,
+                        key: key,
+                        value: value
                     };
                 } catch (e) {
-                    console.error('[酒馆创意工坊] 加载 IndexedDB 数据失败:', e);
+                    console.error('[酒馆创意工坊] 加载 IndexedDB 值失败:', e);
                     $(this).prop('checked', false);
                     toastr.error('加载数据失败: ' + e.message);
                     return;
                 }
             } else {
-                currentState.selectedIndexedDBItems.delete(id);
+                currentState.selectedIndexedDBItems.delete(keyId);
                 if (currentState.idbDataCache) {
-                    delete currentState.idbDataCache[id];
+                    delete currentState.idbDataCache[keyId];
                 }
             }
             updateFilePreview();
         });
 
     } catch (error) {
-        console.error('[酒馆创意工坊] 加载 IndexedDB 失败:', error);
+        console.error('[酒馆创意工坊] 加载 IndexedDB 键值失败:', error);
         $list.html('<div class="error-message"><i class="fa-solid fa-exclamation-triangle"></i> 加载失败: ' + escapeHtml(error.message) + '</div>');
     }
+}
+
+// 获取指定表的所有 Keys
+function getStoreKeys(dbName, storeName) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            try {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const getAllKeysRequest = store.getAllKeys();
+
+                getAllKeysRequest.onsuccess = () => {
+                    resolve(getAllKeysRequest.result);
+                };
+                getAllKeysRequest.onerror = (err) => reject(err);
+                transaction.oncomplete = () => db.close();
+            } catch (e) {
+                db.close();
+                reject(e);
+            }
+        };
+        request.onerror = (err) => reject(err);
+    });
+}
+
+// 获取指定 Key 的值
+function getStoreValue(dbName, storeName, key) {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(dbName);
+        request.onsuccess = (event) => {
+            const db = event.target.result;
+            try {
+                const transaction = db.transaction(storeName, 'readonly');
+                const store = transaction.objectStore(storeName);
+                const getRequest = store.get(key);
+
+                getRequest.onsuccess = () => {
+                    resolve(getRequest.result);
+                };
+                getRequest.onerror = (err) => reject(err);
+                transaction.oncomplete = () => db.close();
+            } catch (e) {
+                db.close();
+                reject(e);
+            }
+        };
+        request.onerror = (err) => reject(err);
+    });
 }
 
 function renderIndexedDBList(data) {
@@ -1353,22 +1459,40 @@ async function updateFilePreview() {
         exportData.paths.localStorage.push(key);
     });
 
-    // 收集 IndexedDB 数据（使用缓存）
+    // 收集 IndexedDB 数据（使用缓存，合并相同数据库和表的数据）
     if (currentState.idbDataCache) {
+        // 使用 Map 按 database+store 分组
+        const groupedData = new Map();
+
         for (const id of currentState.selectedIndexedDBItems) {
             const cached = currentState.idbDataCache[id];
             if (cached) {
-                exportData.indexedDB.push({
-                    database: cached.dbName,
-                    store: cached.storeName,
-                    data: cached.data
-                });
-                // 记录路径信息
-                exportData.paths.indexedDB.push({
-                    database: cached.dbName,
-                    store: cached.storeName
+                const groupKey = `${cached.dbName}|||${cached.storeName}`;
+
+                if (!groupedData.has(groupKey)) {
+                    groupedData.set(groupKey, {
+                        database: cached.dbName,
+                        store: cached.storeName,
+                        data: []
+                    });
+                }
+
+                // 添加键值对到数据数组
+                groupedData.get(groupKey).data.push({
+                    key: cached.key,
+                    value: cached.value
                 });
             }
+        }
+
+        // 转换为数组并添加到 exportData
+        for (const [groupKey, groupData] of groupedData) {
+            exportData.indexedDB.push(groupData);
+            // 记录路径信息
+            exportData.paths.indexedDB.push({
+                database: groupData.database,
+                store: groupData.store
+            });
         }
     }
 
@@ -2141,24 +2265,33 @@ function selectAllLocalStorage(select) {
 async function selectAllIndexedDB(select) {
     const $checkboxes = $('#indexeddb-list input[type="checkbox"]');
 
+    // 检查是否已选择数据表
+    if ($checkboxes.length === 0) {
+        showToast('请先选择一个数据表', 'warning');
+        return;
+    }
+
     for (const checkbox of $checkboxes) {
         const $item = $(checkbox).closest('.checkbox-item');
-        const id = $item.data('id');
+        const keyId = $item.data('id');
         const dbName = $item.data('db');
         const storeName = $item.data('store');
+        const keyIndex = $item.data('key-index');
+        const key = currentState.currentIDBKeys ? currentState.currentIDBKeys[keyIndex] : null;
 
         if (select) {
-            if (!currentState.selectedIndexedDBItems.has(id)) {
+            if (!currentState.selectedIndexedDBItems.has(keyId) && key !== null) {
                 try {
-                    const data = await getStoreData(dbName, storeName);
-                    currentState.selectedIndexedDBItems.add(id);
+                    const value = await getStoreValue(dbName, storeName, key);
+                    currentState.selectedIndexedDBItems.add(keyId);
                     if (!currentState.idbDataCache) {
                         currentState.idbDataCache = {};
                     }
-                    currentState.idbDataCache[id] = {
+                    currentState.idbDataCache[keyId] = {
                         dbName: dbName,
                         storeName: storeName,
-                        data: data
+                        key: key,
+                        value: value
                     };
                     $(checkbox).prop('checked', true);
                 } catch (e) {
@@ -2166,9 +2299,9 @@ async function selectAllIndexedDB(select) {
                 }
             }
         } else {
-            currentState.selectedIndexedDBItems.delete(id);
+            currentState.selectedIndexedDBItems.delete(keyId);
             if (currentState.idbDataCache) {
-                delete currentState.idbDataCache[id];
+                delete currentState.idbDataCache[keyId];
             }
             $(checkbox).prop('checked', false);
         }
