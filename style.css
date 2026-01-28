@@ -1,0 +1,1537 @@
+/* SillyTavern Workshop - 酒馆创意工坊样式 */
+
+/* ==================== 变量定义 ==================== */
+:root {
+    --workshop-primary: #6366f1;
+    --workshop-primary-hover: #4f46e5;
+    --workshop-secondary: #64748b;
+    --workshop-success: #22c55e;
+    --workshop-error: #ef4444;
+    --workshop-warning: #f59e0b;
+    --workshop-bg: #1e1e2e;
+    --workshop-surface: #2a2a3e;
+    --workshop-surface-hover: #363652;
+    --workshop-border: #3f3f5a;
+    --workshop-text: #e2e8f0;
+    --workshop-text-muted: #94a3b8;
+    --workshop-radius: 12px;
+    --workshop-radius-sm: 8px;
+    --workshop-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* ==================== 面板容器 ==================== */
+#workshop-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.workshop-container {
+    width: 100%;
+    max-width: min(1400px, calc(100vw - 40px));
+    max-height: calc(100vh - 40px);
+    min-height: min(600px, calc(100vh - 40px));
+    background: var(--workshop-bg);
+    border-radius: var(--workshop-radius);
+    box-shadow: var(--workshop-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+    margin: auto;
+    flex-shrink: 0;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==================== 头部 ==================== */
+.workshop-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    background: linear-gradient(135deg, var(--workshop-primary), #8b5cf6);
+    color: white;
+}
+
+.workshop-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.workshop-title i {
+    font-size: 28px;
+}
+
+.workshop-title h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.workshop-close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.workshop-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+/* ==================== 标签页 ==================== */
+.workshop-tabs {
+    display: flex;
+    background: var(--workshop-surface);
+    padding: 8px;
+    gap: 8px;
+}
+
+.workshop-tab {
+    flex: 1;
+    padding: 14px 24px;
+    border: none;
+    background: transparent;
+    color: var(--workshop-text-muted);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--workshop-radius-sm);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.workshop-tab:hover {
+    background: var(--workshop-surface-hover);
+    color: var(--workshop-text);
+}
+
+.workshop-tab.active {
+    background: var(--workshop-primary);
+    color: white;
+}
+
+/* ==================== 页面容器 ==================== */
+.workshop-page {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+}
+
+.workshop-page.active {
+    display: block;
+}
+
+/* ==================== 上传页面 ==================== */
+.upload-container {
+    display: grid;
+    grid-template-columns: minmax(280px, 400px) 1fr;
+    height: 100%;
+    max-height: calc(100vh - 180px);
+    overflow: hidden;
+}
+
+.upload-form-section {
+    padding: 24px;
+    overflow-y: auto;
+    border-right: 1px solid var(--workshop-border);
+}
+
+.upload-form-section h3 {
+    margin: 0 0 20px;
+    color: var(--workshop-text);
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.upload-data-section {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 数据内容区域：左右布局 */
+.data-content-wrapper {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    gap: 0;
+}
+
+/* 左侧数据选择面板 */
+.data-select-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--workshop-border);
+}
+
+/* 右侧文件预览面板 */
+.file-preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    overflow: hidden;
+}
+
+.file-preview-panel .json-preview {
+    flex: 1;
+    min-height: 0;
+}
+
+/* ==================== 表单样式 ==================== */
+.form-group {
+    margin-bottom: 18px;
+    position: relative;
+}
+
+.form-row {
+    display: flex;
+    gap: 16px;
+}
+
+.form-group.half {
+    flex: 1;
+}
+
+.form-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    color: var(--workshop-text);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.form-group label i {
+    color: var(--workshop-primary);
+    font-size: 13px;
+}
+
+.required {
+    color: var(--workshop-error);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.form-group input[readonly] {
+    background: var(--workshop-bg);
+    color: var(--workshop-text-muted);
+    cursor: not-allowed;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.field-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--workshop-text-muted);
+}
+
+.field-counter {
+    position: absolute;
+    right: 12px;
+    top: 42px;
+    font-size: 12px;
+    color: var(--workshop-text-muted);
+}
+
+/* ==================== 数据源标签页 ==================== */
+.data-source-tabs {
+    display: flex;
+    padding: 12px 16px;
+    gap: 8px;
+    background: var(--workshop-surface);
+    border-bottom: 1px solid var(--workshop-border);
+}
+
+.data-tab {
+    padding: 10px 20px;
+    border: none;
+    background: transparent;
+    color: var(--workshop-text-muted);
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: var(--workshop-radius-sm);
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.data-tab:hover {
+    background: var(--workshop-surface-hover);
+}
+
+.data-tab.active {
+    background: var(--workshop-primary);
+    color: white;
+}
+
+/* ==================== 数据源区域 ==================== */
+.data-source-section {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    padding: 16px;
+}
+
+.data-source-section.active {
+    display: flex;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-header h4,
+.section-header h5 {
+    margin: 0;
+    color: var(--workshop-text);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.section-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.small-btn {
+    padding: 6px 12px;
+    border: none;
+    background: var(--workshop-surface);
+    color: var(--workshop-text-muted);
+    font-size: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.small-btn:hover {
+    background: var(--workshop-surface-hover);
+    color: var(--workshop-text);
+}
+
+/* ==================== 复选框列表 ==================== */
+.checkbox-list {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--workshop-bg);
+    border-radius: var(--workshop-radius-sm);
+    padding: 8px;
+    min-height: 100px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.checkbox-item:hover {
+    background: var(--workshop-surface);
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--workshop-primary);
+    cursor: pointer;
+}
+
+.checkbox-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.checkbox-label strong {
+    display: block;
+    color: var(--workshop-text);
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.entry-key,
+.entry-size {
+    display: block;
+    font-size: 11px;
+    color: var(--workshop-text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==================== 聊天数据子区域 ==================== */
+.chat-data-subsection {
+    margin-bottom: 16px;
+}
+
+.chat-data-subsection h5 {
+    margin: 0 0 8px;
+    color: var(--workshop-text);
+    font-size: 13px;
+}
+
+/* ==================== 文件预览区 ==================== */
+.file-preview-section {
+    padding: 16px;
+    border-top: 1px solid var(--workshop-border);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 200px;
+}
+
+.json-preview {
+    flex: 1;
+    min-height: 150px;
+    padding: 14px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-bg);
+    color: var(--workshop-text);
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    font-size: 12px;
+    line-height: 1.5;
+    resize: none;
+}
+
+.json-preview:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+}
+
+/* ==================== 按钮样式 ==================== */
+.workshop-btn {
+    padding: 14px 24px;
+    border: none;
+    border-radius: var(--workshop-radius-sm);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.workshop-btn.primary {
+    background: var(--workshop-primary);
+    color: white;
+    width: 100%;
+    margin-top: 8px;
+}
+
+.workshop-btn.primary:hover {
+    background: var(--workshop-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.workshop-btn.primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.workshop-btn.secondary {
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+}
+
+.workshop-btn.secondary:hover {
+    background: var(--workshop-surface-hover);
+}
+
+/* ==================== 下载页面 ==================== */
+.download-container {
+    padding: 24px;
+    height: 100%;
+    max-height: calc(100vh - 180px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.search-filter-section {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--workshop-text-muted);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 14px;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+}
+
+.filter-options {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.filter-options select {
+    padding: 14px 16px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ==================== 结果网格 ==================== */
+.workshop-results {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.workshop-item {
+    background: var(--workshop-surface);
+    border-radius: var(--workshop-radius);
+    padding: 20px;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.workshop-item:hover {
+    border-color: var(--workshop-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.item-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.item-header h4 {
+    margin: 0;
+    color: var(--workshop-text);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.item-type {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.item-type.lorebook {
+    background: rgba(34, 197, 94, 0.2);
+    color: var(--workshop-success);
+}
+
+.item-type.chatdata {
+    background: rgba(99, 102, 241, 0.2);
+    color: var(--workshop-primary);
+}
+
+.item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.item-meta span {
+    font-size: 12px;
+    color: var(--workshop-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.item-meta i {
+    font-size: 11px;
+}
+
+.item-description {
+    margin: 0 0 12px;
+    font-size: 13px;
+    color: var(--workshop-text-muted);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.item-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.tag {
+    padding: 4px 10px;
+    background: var(--workshop-bg);
+    border-radius: 20px;
+    font-size: 11px;
+    color: var(--workshop-text-muted);
+}
+
+.item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.item-actions .workshop-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+/* ==================== 注入选项 ==================== */
+.inject-options {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--workshop-surface);
+    border-radius: var(--workshop-radius);
+    border: 2px solid var(--workshop-primary);
+}
+
+.inject-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.inject-header h4 {
+    margin: 0;
+    color: var(--workshop-text);
+}
+
+.inject-close-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: var(--workshop-text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.inject-close-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--workshop-error);
+}
+
+.inject-targets {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.inject-option {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: var(--workshop-bg);
+    border-radius: var(--workshop-radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.inject-option:hover {
+    background: var(--workshop-surface-hover);
+}
+
+.inject-option input {
+    accent-color: var(--workshop-primary);
+}
+
+.inject-option i {
+    font-size: 20px;
+    color: var(--workshop-primary);
+}
+
+/* ==================== 加载和空状态 ==================== */
+.loading-spinner,
+.empty-message,
+.error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--workshop-text-muted);
+    gap: 12px;
+}
+
+.loading-spinner i {
+    font-size: 32px;
+    color: var(--workshop-primary);
+}
+
+.empty-message i,
+.error-message i {
+    font-size: 48px;
+}
+
+.error-message {
+    color: var(--workshop-error);
+}
+
+/* ==================== Toast 消息 ==================== */
+.workshop-toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+    transform: translateX(120%);
+    transition: transform 0.3s ease;
+    z-index: 9999999;
+    max-width: 90vw;
+}
+
+.workshop-toast.show {
+    transform: translateX(0);
+}
+
+.workshop-toast.success {
+    border-left: 4px solid var(--workshop-success);
+}
+
+.workshop-toast.success i {
+    color: var(--workshop-success);
+}
+
+.workshop-toast.error {
+    border-left: 4px solid var(--workshop-error);
+}
+
+.workshop-toast.error i {
+    color: var(--workshop-error);
+}
+
+.workshop-toast.warning {
+    border-left: 4px solid var(--workshop-warning);
+}
+
+.workshop-toast.warning i {
+    color: var(--workshop-warning);
+}
+
+.workshop-toast.info {
+    border-left: 4px solid var(--workshop-primary);
+}
+
+.workshop-toast.info i {
+    color: var(--workshop-primary);
+}
+
+/* ==================== 菜单按钮 ==================== */
+#workshop-menu-button {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#workshop-menu-button:hover {
+    background: rgba(99, 102, 241, 0.2);
+}
+
+#workshop-menu-button i {
+    color: var(--workshop-primary);
+}
+
+/* ==================== 响应式设计 ==================== */
+
+/* 中等屏幕 (平板横屏和小桌面) */
+@media (max-width: 1200px) {
+    .upload-container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+
+    .upload-form-section {
+        border-right: none;
+        border-bottom: 1px solid var(--workshop-border);
+        max-height: 45vh;
+    }
+}
+
+/* 小屏幕 (平板竖屏) */
+@media (max-width: 1000px) {
+    #workshop-panel {
+        padding: 10px;
+    }
+
+    .workshop-container {
+        max-width: calc(100vw - 20px);
+        max-height: calc(100vh - 20px);
+    }
+
+    .data-content-wrapper {
+        flex-direction: column;
+    }
+
+    .data-select-panel {
+        border-right: none;
+        border-bottom: 1px solid var(--workshop-border);
+        max-height: 35vh;
+        min-height: 150px;
+    }
+
+    .file-preview-panel {
+        min-height: 150px;
+        flex: 1;
+    }
+}
+
+/* 移动端 (手机横屏和平板竖屏) */
+@media (max-width: 768px) {
+    #workshop-panel {
+        padding: 0;
+        align-items: flex-start;
+        justify-content: flex-start;
+    }
+
+    .workshop-container {
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        min-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+    }
+
+    .workshop-header {
+        padding: 12px 16px;
+        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .workshop-tabs {
+        position: sticky;
+        top: 52px;
+        z-index: 9;
+    }
+
+    .workshop-page {
+        overflow-y: auto;
+        height: calc(100vh - 120px);
+    }
+
+    .upload-container {
+        height: auto;
+        max-height: none;
+        min-height: calc(100vh - 120px);
+    }
+
+    .upload-form-section {
+        padding: 16px;
+        max-height: 40vh;
+        overflow-y: auto;
+    }
+
+    .download-container {
+        padding: 12px;
+        height: auto;
+        max-height: none;
+        min-height: calc(100vh - 120px);
+        overflow-y: auto;
+    }
+
+    .workshop-results {
+        overflow: visible;
+    }
+
+    .workshop-title h2 {
+        font-size: 16px;
+    }
+
+    .workshop-title i {
+        font-size: 20px;
+    }
+
+    .workshop-tabs {
+        padding: 4px;
+        gap: 4px;
+    }
+
+    .workshop-tab {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .search-filter-section {
+        flex-direction: column;
+        padding: 12px;
+        gap: 12px;
+    }
+
+    .search-box {
+        min-width: 100%;
+    }
+
+    .filter-options {
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .filter-options select {
+        flex: 1;
+        min-width: 100px;
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .filter-options .workshop-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .results-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .workshop-item {
+        padding: 14px;
+    }
+
+    .item-header h4 {
+        font-size: 15px;
+    }
+
+    .inject-targets {
+        flex-direction: column;
+    }
+
+    .inject-options {
+        padding: 14px;
+        margin-top: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 12px;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .workshop-btn.primary {
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .data-source-section {
+        padding: 12px;
+    }
+
+    .data-select-panel {
+        max-height: 30vh;
+        min-height: 120px;
+    }
+
+    .file-preview-panel {
+        padding: 12px;
+        min-height: 120px;
+    }
+}
+
+/* 超小屏幕 (手机竖屏) */
+@media (max-width: 480px) {
+    .workshop-header {
+        padding: 10px 12px;
+    }
+
+    .workshop-title h2 {
+        font-size: 14px;
+    }
+
+    .workshop-title i {
+        font-size: 18px;
+    }
+
+    .workshop-close-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+
+    .workshop-tab {
+        padding: 8px 10px;
+        font-size: 12px;
+        gap: 4px;
+    }
+
+    .workshop-tab i {
+        font-size: 12px;
+    }
+
+    .item-meta {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .item-actions {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .item-actions .workshop-btn {
+        width: 100%;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .section-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .form-row {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .inject-option {
+        padding: 12px;
+    }
+
+    .inject-option i {
+        font-size: 16px;
+    }
+
+    .idb-selector-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .idb-selector-row label {
+        min-width: auto;
+    }
+
+    .idb-selector-row select,
+    .idb-selector-row button {
+        width: 100%;
+    }
+
+    .upload-form-section {
+        padding: 12px;
+        max-height: 35vh;
+    }
+
+    .data-source-tabs {
+        padding: 8px 12px;
+    }
+
+    .data-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .download-container {
+        padding: 10px;
+    }
+
+    .search-box input {
+        padding: 12px 12px 12px 40px;
+        font-size: 13px;
+    }
+
+    .search-box i {
+        left: 12px;
+    }
+}
+
+/* ==================== 滚动条样式 ==================== */
+.workshop-container ::-webkit-scrollbar {
+    width: 8px;
+}
+
+.workshop-container ::-webkit-scrollbar-track {
+    background: var(--workshop-bg);
+    border-radius: 4px;
+}
+
+.workshop-container ::-webkit-scrollbar-thumb {
+    background: var(--workshop-border);
+    border-radius: 4px;
+}
+
+.workshop-container ::-webkit-scrollbar-thumb:hover {
+    background: var(--workshop-secondary);
+}
+
+/* ==================== IndexedDB 选择器 ==================== */
+.idb-selector-container {
+    padding: 8px;
+}
+
+.idb-selector-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.idb-selector-row label {
+    min-width: 100px;
+    color: var(--workshop-text);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.idb-selector-row select {
+    flex: 1;
+    padding: 10px 14px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 14px;
+}
+
+.idb-selector-row select:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+}
+
+.idb-selector-row button {
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+.idb-selector-row button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.idb-data-preview {
+    margin-top: 12px;
+    background: var(--workshop-bg);
+    border-radius: var(--workshop-radius-sm);
+    overflow: hidden;
+}
+
+.idb-data-preview .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: var(--workshop-surface);
+    border-bottom: 1px solid var(--workshop-border);
+}
+
+.idb-data-preview .preview-header span {
+    color: var(--workshop-text);
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.idb-data-preview .preview-header small {
+    color: var(--workshop-text-muted);
+    font-size: 12px;
+}
+
+/* ==================== 下载列表样式 ==================== */
+.workshop-item {
+    background: var(--workshop-surface);
+    border-radius: var(--workshop-radius);
+    padding: 20px;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.workshop-item:hover {
+    border-color: var(--workshop-primary);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+}
+
+.detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--workshop-border);
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row-full {
+    flex-direction: column;
+    gap: 6px;
+}
+
+.detail-label {
+    color: var(--workshop-text-muted);
+    font-size: 12px;
+    min-width: 80px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.detail-label i {
+    font-size: 11px;
+    color: var(--workshop-primary);
+}
+
+.detail-value {
+    color: var(--workshop-text);
+    font-size: 13px;
+    flex: 1;
+}
+
+.detail-description {
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.detail-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--workshop-border);
+}
+
+.detail-actions .workshop-btn {
+    flex: 1;
+    padding: 10px 16px;
+    font-size: 13px;
+}
+
+/* ==================== 详情弹窗 ==================== */
+.workshop-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(4px);
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.2s ease;
+}
+
+.workshop-modal-content {
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    background: var(--workshop-bg);
+    border-radius: var(--workshop-radius);
+    box-shadow: var(--workshop-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, var(--workshop-primary), #8b5cf6);
+    color: white;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.modal-close-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.modal-body {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.modal-detail-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--workshop-surface);
+    border-top: 1px solid var(--workshop-border);
+}
+
+.modal-footer .workshop-btn {
+    flex: 1;
+    margin-top: 0;
+}
+
+/* 移动端弹窗适配 */
+@media (max-width: 768px) {
+    .workshop-modal-content {
+        width: 95%;
+        max-height: 85vh;
+    }
+
+    .modal-header {
+        padding: 12px 16px;
+    }
+
+    .modal-header h3 {
+        font-size: 16px;
+    }
+
+    .modal-body {
+        padding: 16px;
+    }
+
+    .modal-footer {
+        padding: 12px 16px;
+        flex-direction: column;
+    }
+}
+
+/* ==================== 分页控件 ==================== */
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    background: var(--workshop-surface);
+    border-radius: var(--workshop-radius-sm);
+}
+
+.pagination-btn {
+    padding: 8px 12px;
+    border: none;
+    background: var(--workshop-bg);
+    color: var(--workshop-text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pagination-btn:hover:not(:disabled) {
+    background: var(--workshop-primary);
+    color: white;
+}
+
+.pagination-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.pagination-info {
+    color: var(--workshop-text-muted);
+    font-size: 13px;
+    padding: 0 16px;
+}
+
+/* 移动端分页适配 */
+@media (max-width: 768px) {
+    .detail-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .detail-actions {
+        flex-direction: column;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .pagination-info {
+        width: 100%;
+        text-align: center;
+        order: -1;
+        padding: 0 0 8px;
+    }
+}

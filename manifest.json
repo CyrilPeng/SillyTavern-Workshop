@@ -1,0 +1,12 @@
+{
+    "display_name": "酒馆创意工坊",
+    "loading_order": 100,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Workshop Team",
+    "version": "1.0.0",
+    "homePage": "https://github.com/your-repo/SillyTavernWorkshop",
+    "auto_update": false
+}
