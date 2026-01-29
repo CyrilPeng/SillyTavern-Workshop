@@ -718,10 +718,21 @@
 /* ==================== 下载页面 ==================== */
 .download-container {
     padding: 24px;
-    flex: 1;
+    flex: 1; /* 填充剩余空间 */
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    height: 100%; /* 关键修复：强制占满父容器高度 */
+    min-height: 0; /* 关键修复：允许 Flex 子项收缩，触发滚动 */
+    box-sizing: border-box; /* 确保 padding 不会撑破高度 */
+}
+
+/* 确保结果列表区域正确滚动 */
+.workshop-results {
+    flex: 1;
+    overflow-y: auto;
+    padding-top: 8px;
+    min-height: 0; /* 关键修复：防止内容过少时塌陷或过多时撑开 */
 }
 
 .search-filter-section {
@@ -1150,7 +1161,7 @@
         border-bottom: 1px solid var(--workshop-border);
         overflow: visible !important;
         height: auto !important;
-        min-height: 300px;
+        min-height: auto;
         flex: none;
     }
 
@@ -1166,9 +1177,15 @@
         flex-direction: column;
     }
 
+    /* 修复1：即使在窄屏模式下，列表区域也应该有固定最大高度，并开启内部滚动 */
     .checkbox-list {
-        max-height: none !important;
-        overflow: visible !important;
+        max-height: 300px !important;
+        overflow-y: auto !important;
+    }
+    
+    /* 聊天数据子区域的列表也限制高度 */
+    .chat-data-subsection .checkbox-list {
+        max-height: 150px !important;
     }
 
     .file-preview-panel {
@@ -1193,8 +1210,10 @@
         max-height: none !important;
     }
 
+    /* 修复2：下载结果容器限制最大高度，防止撑满屏幕 */
     .workshop-results {
-        overflow: visible !important;
+        overflow-y: auto !important;
+        max-height: 70vh !important; /* 限制高度 */
         height: auto !important;
     }
 
@@ -1281,11 +1300,16 @@
     }
     
     .item-actions {
-        flex-direction: column;
+        flex-direction: row; /* 强制水平排列 */
+        gap: 8px; /* 按钮间距 */
     }
     
     .item-actions .workshop-btn {
-        width: 100%;
+        width: auto; /* 取消 100% 宽度 */
+        flex: 1; /* 三个按钮均分空间 */
+        padding: 8px 4px; /* 稍微减小内边距以防文字折行 */
+        font-size: 12px;
+        white-space: nowrap; /* 防止文字换行 */
     }
 }
 
