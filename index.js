@@ -4,11 +4,15 @@
 import { extension_settings, getContext, loadExtensionSettings } from '../../../extensions.js';
 import { saveSettingsDebounced, eventSource, event_types } from '../../../../script.js';
 import { getWorldInfoSettings } from '../../../world-info.js';
+import { DiscordAuthModule } from './discord_auth.js'; // 导入鉴权模块
 
 // 插件名称常量
 const EXTENSION_NAME = 'SillyTavernWorkshop';
 const API_BASE_URL = 'https://st-api.pengcyril.dpdns.org';
 const WORKSHOP_BASE_URL = 'https://st-workshop.pengcyril.dpdns.org';
+
+// 鉴权模块实例
+let authModule = null;
 
 // 默认设置
 const defaultSettings = {
@@ -33,6 +37,26 @@ let currentState = {
 
 jQuery(async () => {
     console.log(`[${EXTENSION_NAME}] 正在加载插件...`);
+
+    // ⬇️ 插入样式：处理禁用按钮和Tooltip
+    $('head').append(`<style>
+        .disabled-upload { opacity: 0.6; cursor: not-allowed !important; background: #333 !important; position: relative; }
+        .disabled-upload:hover::after {
+            content: "上传创意工坊需登录 Discord";
+            position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.9); padding: 5px 8px; border-radius: 4px; 
+            white-space: nowrap; font-size: 12px; pointer-events: none; z-index: 9999;
+        }
+    </style>`);
+    // ⬇️ 初始化鉴权模块
+    authModule = new DiscordAuthModule({
+        apiBaseUrl: API_BASE_URL,
+        onAuthChange: () => {
+            $('#workshop-auth-container').html(authModule.renderButton());
+            authModule.bindEvents();
+            updateUploadButtonState(); // 更新上传按钮状态
+        }
+    });
     
     // 加载设置
     loadSettings();
@@ -42,12 +66,26 @@ jQuery(async () => {
     
     // 绑定事件
     bindEvents();
+
+    // ⬇️ 绑定鉴权按钮事件 & 初始化上传按钮状态
+    authModule.bindEvents();
+    updateUploadButtonState();
     
     // 初始化数据
     await initializeData();
     
     console.log(`[${EXTENSION_NAME}] 插件加载完成`);
 });
+
+// ⬇️ 新增辅助函数：控制上传按钮状态
+function updateUploadButtonState() {
+    const btn = $('#upload-submit-btn');
+    if (authModule.isAuthenticated()) {
+        btn.removeClass('disabled-upload').prop('disabled', false).html('<i class="fa-solid fa-cloud-arrow-up"></i> 上传到创意工坊');
+    } else {
+        btn.addClass('disabled-upload').prop('disabled', true).html('<i class="fa-brands fa-discord"></i> 请先登录');
+    }
+}
 
 // 加载插件设置
 function loadSettings() {
@@ -78,9 +116,15 @@ async function createUI() {
                         <i class="fa-solid fa-store"></i>
                         <h2>酒馆创意工坊</h2>
                     </div>
-                    <button id="workshop-close-btn" class="workshop-close-btn">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
+
+                    <!-- 右侧操作区：登录按钮 + 关闭按钮  -->
+                    <div style="display:flex; align-items:center;">
+                        <div id="workshop-auth-container">${authModule.renderButton()}</div>
+                        <button id="workshop-close-btn" class="workshop-close-btn">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    
                 </div>
                 
                 <!-- 标签页切换 -->
@@ -2051,6 +2095,13 @@ function writeDataToStore(db, storeName, data) {
 // ==================== 上传功能 ====================
 
 async function handleUpload() {
+    // 再次检查鉴权（防止绕过 UI）
+    if (!authModule.isAuthenticated()) {
+        toastr.error('请先登录 Discord 才能上传');
+        authModule.login();
+        return;
+    }
+
     // 验证表单
     const validation = validateForm();
     if (!validation.valid) {
@@ -2090,10 +2141,19 @@ async function handleUpload() {
         
         const response = await fetch(`${API_BASE_URL}/upload`, {
             method: 'POST',
+            // 添加 Authorization Header
+            headers: {
+                'Authorization': `Bearer ${authModule.getToken()}`
+            },
             body: formData
         });
         
         if (!response.ok) {
+            // 处理 Token 过期 (401)
+            if (response.status === 401) {
+                authModule.logout();
+                throw new Error('登录已过期，请重新登录');
+            }
             const errorText = await response.text();
             throw new Error(errorText || '上传失败');
         }
@@ -2116,7 +2176,8 @@ async function handleUpload() {
         console.error('[酒馆创意工坊] 上传失败:', error);
         showToast('上传失败: ' + error.message, 'error');
     } finally {
-        $('#upload-submit-btn').prop('disabled', false).html('<i class="fa-solid fa-cloud-arrow-up"></i> 上传到创意工坊');
+        // 恢复按钮状态时，要根据鉴权状态恢复
+        updateUploadButtonState();
     }
 }
 
