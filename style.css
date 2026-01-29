@@ -1746,3 +1746,92 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.5);
     margin-bottom: 5px;
 }
+
+/* ==================== Tags System ==================== */
+.tag-container {
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    padding: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-height: 46px; /* Match input height */
+    transition: all 0.2s;
+}
+
+.tag-container:focus-within {
+    border-color: var(--workshop-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.tag-chip {
+    background: var(--workshop-primary);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: fadeIn 0.2s ease;
+}
+
+.tag-chip i {
+    cursor: pointer;
+    font-size: 10px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.tag-chip i:hover {
+    opacity: 1;
+}
+
+.tag-input-wrapper {
+    flex: 1;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+}
+
+.tag-input-wrapper input {
+    border: none !important;
+    background: transparent !important;
+    padding: 6px !important;
+    box-shadow: none !important;
+    min-width: 80px;
+    flex: 1;
+}
+
+.tag-add-btn {
+    background: none;
+    border: none;
+    color: var(--workshop-text-muted);
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+}
+
+.tag-add-btn:hover {
+    color: var(--workshop-primary);
+}
+
+/* ==================== JSON Validation ==================== */
+.validation-error {
+    border-color: var(--workshop-error) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+}
+
+.validation-warning-text {
+    animation: fadeIn 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}

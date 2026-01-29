@@ -30,7 +30,8 @@ let currentState = {
     currentWorldbookName: null, // 当前使用的世界书名称
     workshopData: null,
     workshopCurrentPage: 1, // 当前分页
-    currentTab: 'upload'
+    currentTab: 'upload',
+    tags: [] // 标签列表
 };
 
 // ==================== 初始化 ====================
@@ -208,34 +209,27 @@ function createUploadPage() {
                     <span class="field-counter"><span id="author-count">0</span>/20</span>
                 </div>
                 
-                <div class="form-row">
-                    <div class="form-group half">
-                        <label for="field-version">
-                            <i class="fa-solid fa-code-branch"></i> 版本
-                            <span class="required">*</span>
-                        </label>
-                        <input type="text" id="field-version" placeholder="如: 1.0" pattern="\\d+\\.\\d+" />
-                        <span class="field-hint">格式: X.X</span>
-                    </div>
-                    
-                    <div class="form-group half">
-                        <label for="field-type">
-                            <i class="fa-solid fa-tags"></i> 类型
-                            <span class="required">*</span>
-                        </label>
-                        <select id="field-type">
-                            <option value="Lorebook">世界书</option>
-                            <option value="ChatData">聊天数据</option>
-                        </select>
-                    </div>
+                <div class="form-group">
+                    <label for="field-version">
+                        <i class="fa-solid fa-code-branch"></i> 版本
+                        <span class="required">*</span>
+                    </label>
+                    <input type="text" id="field-version" placeholder="如: 1.0" pattern="\\d+\\.\\d+" />
+                    <span class="field-hint">格式: X.X</span>
                 </div>
                 
                 <div class="form-group">
-                    <label for="field-tags">
-                        <i class="fa-solid fa-hashtag"></i> 标签
+                    <label>
+                        <i class="fa-solid fa-hashtag"></i> 标签 (最多5个)
                     </label>
-                    <input type="text" id="field-tags" placeholder="用逗号分隔，最多5个标签" />
-                    <span class="field-hint">每个标签最多5个字符</span>
+                    <div class="tag-container" id="tag-container">
+                        <div class="tag-chips" id="tag-chips"></div>
+                        <div class="tag-input-wrapper">
+                            <input type="text" id="tag-input" placeholder="输入标签按回车或点击+" maxlength="20">
+                            <button id="add-tag-btn" class="tag-add-btn"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <span class="field-hint">每个标签最多5汉字或10英文字符</span>
                 </div>
                 
                 <div class="form-group">
@@ -343,7 +337,12 @@ function createUploadPage() {
                     <!-- 右侧：文件预览区 -->
                     <div class="file-preview-panel">
                         <div class="section-header">
-                            <h4><i class="fa-solid fa-file-code"></i> 文件预览 (JSON)</h4>
+                            <h4>
+                                <i class="fa-solid fa-file-code"></i> 文件预览 (JSON)
+                                <span id="json-length-warning" class="validation-warning-text" style="display:none; margin-left: 10px; font-size: 12px; color: var(--workshop-error);">
+                                    <i class="fa-solid fa-exclamation-triangle"></i> 文件长度不得超过8192
+                                </span>
+                            </h4>
                             <div class="section-actions">
                                 <button id="copy-json-btn" class="small-btn">
                                     <i class="fa-solid fa-copy"></i> 复制
@@ -426,6 +425,86 @@ function createDownloadPage() {
     `;
 }
 
+// ==================== 标签系统逻辑 ====================
+
+function renderTags() {
+    const $container = $('#tag-chips');
+    $container.empty();
+    
+    currentState.tags.forEach((tag, index) => {
+        const $chip = $(`
+            <div class="tag-chip">
+                <span>${escapeHtml(tag)}</span>
+                <i class="fa-solid fa-xmark" data-index="${index}"></i>
+            </div>
+        `);
+        $container.append($chip);
+    });
+}
+
+function addTag(text) {
+    if (!text) return;
+    text = text.trim();
+    if (!text) return;
+    
+    if (currentState.tags.length >= 5) {
+        showToast('最多添加5个标签', 'warning');
+        return;
+    }
+    
+    if (currentState.tags.includes(text)) {
+        showToast('标签已存在', 'warning');
+        return;
+    }
+    
+    const validation = validateTagLength(text);
+    if (!validation.valid) {
+        showToast('标签过长：最多5个汉字或10个英文字符', 'warning');
+        return;
+    }
+    
+    currentState.tags.push(text);
+    renderTags();
+    $('#tag-input').val('');
+}
+
+function removeTag(index) {
+    currentState.tags.splice(index, 1);
+    renderTags();
+}
+
+function validateTagLength(text) {
+    let score = 0;
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        // ASCII char counts as 1, non-ASCII counts as 2
+        score += (code >= 0 && code <= 127) ? 1 : 2;
+    }
+    // Max 10 points (5 Chinese chars * 2, or 10 ASCII * 1)
+    return { valid: score <= 10, score };
+}
+
+// ==================== JSON 长度校验 ====================
+
+function checkJsonLength() {
+    const content = $('#field-file').val();
+    const length = content.length;
+    const MAX_LENGTH = 8192;
+    
+    const $warning = $('#json-length-warning');
+    const $textarea = $('#field-file');
+    
+    if (length > MAX_LENGTH) {
+        $warning.show();
+        $textarea.addClass('validation-error');
+        return false;
+    } else {
+        $warning.hide();
+        $textarea.removeClass('validation-error');
+        return true;
+    }
+}
+
 // ==================== 事件绑定 ====================
 
 function bindEvents() {
@@ -473,6 +552,26 @@ function bindEvents() {
     $('#field-description').on('input', function() {
         $('#desc-count').text($(this).val().length);
     });
+
+    // 标签系统事件
+    $('#tag-input').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            addTag($(this).val());
+        }
+    });
+    
+    $('#add-tag-btn').on('click', function() {
+        addTag($('#tag-input').val());
+    });
+    
+    $(document).on('click', '.tag-chip i', function() {
+        const index = $(this).data('index');
+        removeTag(index);
+    });
+
+    // JSON 长度校验
+    $('#field-file').on('input', checkJsonLength);
     
     // 世界书操作按钮
     $('#wb-select-all').on('click', () => selectAllWorldBook(true));
@@ -1620,9 +1719,14 @@ function renderWorkshopResults(data) {
             <div class="workshop-item" data-index="${index}">
                 <div class="item-header">
                     <h4>${escapeHtml(item.name || '未命名')}</h4>
-                    <span class="item-type ${item.type === 'Lorebook' ? 'lorebook' : 'chatdata'}">
-                        ${item.type === 'Lorebook' ? '世界书' : '聊天数据'}
-                    </span>
+                    <div class="item-badges" style="display:flex; gap:4px;">
+                        ${(item.type || '').split(',').map(t => {
+                            const isLb = t.trim() === 'Lorebook';
+                            const label = isLb ? '世界书' : '聊天数据';
+                            const cls = isLb ? 'lorebook' : 'chatdata';
+                            return `<span class="item-type ${cls}">${label}</span>`;
+                        }).join('')}
+                    </div>
                 </div>
                 <div class="item-meta">
                     <span><i class="fa-solid fa-id-card"></i> ${escapeHtml(item.cardname || '-')}</span>
@@ -1745,10 +1849,13 @@ function showDetailModal(index) {
             </div>
             <div class="detail-row">
                 <span class="detail-label"><i class="fa-solid fa-tags"></i> 类型:</span>
-                <span class="detail-value">
-                    <span class="item-type ${item.type === 'Lorebook' ? 'lorebook' : 'chatdata'}">
-                        ${item.type === 'Lorebook' ? '世界书' : '聊天数据'}
-                    </span>
+                <span class="detail-value" style="display:flex; gap:4px;">
+                    ${(item.type || '').split(',').map(t => {
+                        const isLb = t.trim() === 'Lorebook';
+                        const label = isLb ? '世界书' : '聊天数据';
+                        const cls = isLb ? 'lorebook' : 'chatdata';
+                        return `<span class="item-type ${cls}">${label}</span>`;
+                    }).join('')}
                 </span>
             </div>
             ${item.description ? `
@@ -2109,17 +2216,50 @@ async function handleUpload() {
         return;
     }
     
+    // JSON 长度二次校验
+    if (!checkJsonLength()) {
+        showToast('文件内容过长，无法上传', 'error');
+        return;
+    }
+
+    // 防篡改：重新获取当前角色卡名称
+    const context = getContext();
+    const realCardName = context.name2 || '未选择角色卡';
+    $('#field-cardname').val(realCardName);
+
     const formData = new FormData();
     
     // 获取字段值
-    const cardname = $('#field-cardname').val();
+    const cardname = realCardName;
     const name = $('#field-name').val();
     const author = $('#field-author').val();
     const version = $('#field-version').val();
-    const type = $('#field-type').val();
-    const tags = $('#field-tags').val();
     const description = $('#field-description').val();
     const fileContent = $('#field-file').val();
+    
+    // 自动判定类型
+    let type = '';
+    try {
+        const json = JSON.parse(fileContent);
+        const types = [];
+        if (json.worldBook && json.worldBook.length > 0) {
+            types.push('Lorebook');
+        }
+        if ((json.localStorage && Object.keys(json.localStorage).length > 0) || 
+            (json.indexedDB && json.indexedDB.length > 0)) {
+            types.push('ChatData');
+        }
+        type = types.join(',');
+    } catch (e) {
+        console.warn('Type detection failed:', e);
+    }
+    
+    if (!type) {
+        showToast('无法识别文件类型（需包含世界书或聊天数据）', 'error');
+        return;
+    }
+
+    const tags = currentState.tags.join(',');
     
     // 创建 JSON 文件
     const blob = new Blob([fileContent], { type: 'application/json' });
@@ -2186,8 +2326,7 @@ function validateForm() {
     const name = $('#field-name').val().trim();
     const author = $('#field-author').val().trim();
     const version = $('#field-version').val().trim();
-    const type = $('#field-type').val();
-    const tags = $('#field-tags').val().trim();
+    // type is auto-detected now
     const fileContent = $('#field-file').val().trim();
     
     if (!cardname) {
@@ -2206,22 +2345,11 @@ function validateForm() {
         return { valid: false, message: '版本号格式错误，请使用 X.X 格式' };
     }
     
-    if (!type) {
-        return { valid: false, message: '请选择类型' };
-    }
-    
     // 验证标签
-    if (tags) {
-        const tagList = tags.split(',').map(t => t.trim()).filter(t => t);
-        if (tagList.length > 5) {
-            return { valid: false, message: '最多设置5个标签' };
-        }
-        for (const tag of tagList) {
-            if (tag.length > 5) {
-                return { valid: false, message: '每个标签最多5个字符' };
-            }
-        }
+    if (currentState.tags.length > 5) {
+        return { valid: false, message: '最多设置5个标签' };
     }
+    // Tag content validation is done during addition
     
     if (!fileContent) {
         return { valid: false, message: '请选择或输入文件内容' };
@@ -2241,9 +2369,13 @@ function clearUploadForm() {
     $('#field-name').val('');
     $('#field-author').val('');
     $('#field-version').val('');
-    $('#field-tags').val('');
+    $('#tag-input').val('');
+    currentState.tags = [];
+    renderTags();
     $('#field-description').val('');
     $('#field-file').val('');
+    $('#json-length-warning').hide();
+    $('#field-file').removeClass('validation-error');
     $('#name-count, #author-count, #desc-count').text('0');
     currentState.selectedWorldBookEntries.clear();
     currentState.selectedLocalStorageKeys.clear();
