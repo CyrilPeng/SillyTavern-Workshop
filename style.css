@@ -32,6 +32,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden; /* 防止最外层出现滚动条 */
     animation: fadeIn 0.2s ease;
     -webkit-overflow-scrolling: touch;
     overflow-y: auto;
@@ -47,8 +48,7 @@
 .workshop-container {
     width: 100%;
     max-width: min(1400px, calc(100vw - 40px));
-    max-height: calc(100vh - 40px);
-    min-height: min(600px, calc(100vh - 40px));
+    height: calc(100vh - 40px);
     background: var(--workshop-bg);
     border-radius: var(--workshop-radius);
     box-shadow: var(--workshop-shadow);
@@ -153,6 +153,7 @@
 .workshop-page {
     display: none;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
@@ -165,7 +166,6 @@
     display: grid;
     grid-template-columns: minmax(280px, 400px) 1fr;
     height: 100%;
-    max-height: calc(100vh - 180px);
     overflow: hidden;
 }
 
@@ -1091,247 +1091,173 @@
 
 /* ==================== 响应式设计 ==================== */
 
-/* 中等屏幕 (平板横屏和小桌面) */
+/* 中小屏幕适配 (小于 1200px) */
 @media (max-width: 1200px) {
+    #workshop-panel {
+        overflow-y: auto; /* 确保最外层可滚动 */
+        padding: 10px;
+        align-items: flex-start; /* 顶部对齐，防止内容过长时居中被截断 */
+    }
+
+    .workshop-container {
+        max-width: 100%;
+        height: auto !important; /* 允许高度自适应 */
+        min-height: auto;
+        overflow: visible !important;
+        margin: 20px auto; /* 保持一定的上下边距 */
+    }
+
+    .workshop-page {
+        overflow: visible !important; /* 解除内部滚动限制 */
+        flex: none;
+        height: auto !important;
+    }
+
+    /* 上传页面单列布局 */
     .upload-container {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto 1fr;
+        display: flex;
+        flex-direction: column;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .upload-form-section {
         border-right: none;
         border-bottom: 1px solid var(--workshop-border);
-        max-height: 45vh;
-    }
-}
-
-/* 小屏幕 (平板竖屏) */
-@media (max-width: 1000px) {
-    #workshop-panel {
-        padding: 10px;
+        padding: 20px;
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
     }
 
-    .workshop-container {
-        max-width: calc(100vw - 20px);
-        max-height: calc(100vh - 20px);
+    .upload-data-section {
+        overflow: visible !important;
+        height: auto !important;
+        display: flex;
+        flex-direction: column;
     }
 
+    /* 数据内容区域 */
     .data-content-wrapper {
         flex-direction: column;
+        overflow: visible !important;
+        height: auto !important;
     }
 
     .data-select-panel {
         border-right: none;
         border-bottom: 1px solid var(--workshop-border);
-        max-height: 35vh;
-        min-height: 150px;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 300px;
+        flex: none;
+    }
+
+    .data-source-section {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0;
+        display: none; /* 保持 tab 切换逻辑 */
+    }
+    
+    .data-source-section.active {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .checkbox-list {
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .file-preview-panel {
-        min-height: 150px;
-        flex: 1;
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 300px;
+        flex: none;
+        padding: 20px;
+    }
+
+    .json-preview {
+        height: auto !important;
+        min-height: 300px;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    /* 下载页面适配 */
+    .download-container {
+        overflow: visible !important;
+        height: auto !important;
+        max-height: none !important;
+    }
+
+    .workshop-results {
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     }
 }
 
-/* 移动端 (手机横屏和平板竖屏) */
+/* 移动端进一步适配 */
 @media (max-width: 768px) {
-    #workshop-panel {
-        padding: 0;
-        align-items: flex-start;
-        justify-content: flex-start;
+    .workshop-container {
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+        width: 100%;
+        max-width: 100%;
     }
 
-    .workshop-container {
-        width: 100vw;
-        height: 100vh;
-        max-width: 100vw;
-        max-height: 100vh;
-        min-height: 100vh;
-        border-radius: 0;
-        margin: 0;
+    #workshop-panel {
+        padding: 0;
     }
 
     .workshop-header {
-        padding: 12px 16px;
-        flex-shrink: 0;
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 100;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, var(--workshop-primary), #8b5cf6);
     }
 
     .workshop-tabs {
         position: sticky;
-        top: 52px;
-        z-index: 9;
-    }
-
-    .workshop-page {
-        overflow-y: auto;
-        height: calc(100vh - 120px);
-    }
-
-    .upload-container {
-        display: block;
-        height: auto;
-        max-height: none;
-        min-height: auto;
-        overflow: visible;
+        top: 60px; /* 估算 Header 高度 */
+        z-index: 90;
+        margin: 0;
+        background: var(--workshop-surface);
+        border-bottom: 1px solid var(--workshop-border);
     }
 
     .upload-form-section {
         padding: 16px;
-        max-height: none;
-        overflow: visible;
-        border-right: none;
-        border-bottom: 1px solid var(--workshop-border);
-    }
-
-    .upload-data-section {
-        display: block;
-    }
-
-    .data-source-tabs {
-        position: sticky;
-        top: 0;
-        z-index: 5;
-        background: var(--workshop-surface);
-    }
-
-    .data-content-wrapper {
-        display: block;
-    }
-
-    .data-select-panel {
-        max-height: 350px;
-        min-height: auto;
-        border-right: none;
-        border-bottom: 1px solid var(--workshop-border);
-        overflow: hidden;
-    }
-
-    .data-source-section {
-        max-height: 300px;
-        min-height: auto;
-        padding: 12px;
-        overflow: hidden;
-    }
-
-    .data-source-section .checkbox-list {
-        max-height: 200px;
-        min-height: 100px;
-    }
-
-    .chat-data-subsection .checkbox-list {
-        max-height: 200px;
-        min-height: 100px;
-    }
-
-    .file-preview-panel {
-        padding: 12px;
-        min-height: 180px;
-    }
-
-    .file-preview-panel .json-preview {
-        min-height: 150px;
-    }
-
-    .download-container {
-        padding: 12px;
-        height: auto;
-        max-height: none;
-        min-height: calc(100vh - 120px);
-        overflow-y: auto;
-    }
-
-    .workshop-results {
-        overflow: visible;
-    }
-
-    .workshop-title h2 {
-        font-size: 16px;
-    }
-
-    .workshop-title i {
-        font-size: 20px;
-    }
-
-    .workshop-tabs {
-        padding: 4px;
-        gap: 4px;
-    }
-
-    .workshop-tab {
-        padding: 10px 12px;
-        font-size: 13px;
     }
 
     .search-filter-section {
         flex-direction: column;
-        padding: 12px;
-        gap: 12px;
+        align-items: stretch;
     }
-
+    
     .search-box {
-        min-width: 100%;
-    }
-
-    .filter-options {
-        flex-wrap: wrap;
         width: 100%;
     }
-
+    
+    .filter-options {
+        flex-wrap: wrap;
+    }
+    
     .filter-options select {
         flex: 1;
         min-width: 100px;
-        padding: 10px 12px;
-        font-size: 13px;
     }
-
-    .filter-options .workshop-btn {
-        padding: 10px 16px;
-        font-size: 13px;
-    }
-
+    
     .results-grid {
         grid-template-columns: 1fr;
-        gap: 12px;
-    }
-
-    .workshop-item {
-        padding: 14px;
-    }
-
-    .item-header h4 {
-        font-size: 15px;
-    }
-
-    .inject-targets {
-        flex-direction: column;
-    }
-
-    .inject-options {
-        padding: 14px;
-        margin-top: 12px;
-    }
-
-    .form-group {
-        margin-bottom: 12px;
-    }
-
-    .form-group input,
-    .form-group select,
-    .form-group textarea {
-        padding: 10px 12px;
-        font-size: 13px;
-    }
-
-    .workshop-btn.primary {
-        padding: 12px 20px;
-        font-size: 14px;
-    }
-
-    .data-source-section {
-        padding: 12px;
     }
 }
 
@@ -1340,111 +1266,26 @@
     .workshop-header {
         padding: 10px 12px;
     }
-
+    
     .workshop-title h2 {
-        font-size: 14px;
+        font-size: 16px;
     }
-
-    .workshop-title i {
-        font-size: 18px;
-    }
-
+    
     .workshop-close-btn {
         width: 32px;
         height: 32px;
-        font-size: 14px;
     }
-
-    .workshop-tab {
-        padding: 8px 10px;
-        font-size: 12px;
-        gap: 4px;
-    }
-
-    .workshop-tab i {
-        font-size: 12px;
-    }
-
-    .item-meta {
+    
+    .detail-row {
         flex-direction: column;
-        gap: 6px;
     }
-
+    
     .item-actions {
-        flex-direction: row;
-        gap: 6px;
+        flex-direction: column;
     }
-
+    
     .item-actions .workshop-btn {
-        flex: 1;
-        padding: 8px 10px;
-        font-size: 11px;
-    }
-
-    .section-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .section-actions {
         width: 100%;
-        justify-content: flex-start;
-    }
-
-    .form-row {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .inject-option {
-        padding: 12px;
-    }
-
-    .inject-option i {
-        font-size: 16px;
-    }
-
-    .idb-selector-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 6px;
-    }
-
-    .idb-selector-row label {
-        min-width: auto;
-    }
-
-    .idb-selector-row select,
-    .idb-selector-row button {
-        width: 100%;
-    }
-
-    .upload-form-section {
-        padding: 12px;
-        max-height: 35vh;
-    }
-
-    .data-source-tabs {
-        padding: 8px 12px;
-    }
-
-    .data-tab {
-        padding: 8px 12px;
-        font-size: 12px;
-    }
-
-    .download-container {
-        padding: 10px;
-    }
-
-    .search-box input {
-        padding: 12px 12px 12px 40px;
-        font-size: 13px;
-    }
-
-    .search-box i {
-        left: 12px;
     }
 }
 
