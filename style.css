@@ -223,6 +223,13 @@
     min-height: 0;
 }
 
+.file-preview-panel .section-header h4 {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    flex-wrap: wrap; /* 允许小屏幕下换行 */
+}
+
 /* ==================== 表单样式 ==================== */
 .form-group {
     margin-bottom: 18px;
@@ -1834,4 +1841,17 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+}
+
+/* ==================== Character Counter ==================== */
+.char-counter {
+    font-size: 12px;
+    color: var(--workshop-text-muted);
+    margin-left: 10px;
+    font-weight: normal;
+}
+
+.char-counter.error {
+    color: var(--workshop-error);
+    font-weight: bold;
 }

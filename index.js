@@ -214,8 +214,8 @@ function createUploadPage() {
                         <i class="fa-solid fa-code-branch"></i> 版本
                         <span class="required">*</span>
                     </label>
-                    <input type="text" id="field-version" placeholder="如: 1.0" pattern="\\d+\\.\\d+" />
-                    <span class="field-hint">格式: X.X</span>
+                    <input type="text" id="field-version" placeholder="如: 1.0、22.22" pattern="\\d{1,2}\\.\\d{1,2}" maxlength="5" />
+                    <span class="field-hint">格式: XX.XX，最多5个字符</span>
                 </div>
                 
                 <div class="form-group">
@@ -339,6 +339,7 @@ function createUploadPage() {
                         <div class="section-header">
                             <h4>
                                 <i class="fa-solid fa-file-code"></i> 文件预览 (JSON)
+                                <span id="json-length-counter" class="char-counter">0 / 8192</span>
                                 <span id="json-length-warning" class="validation-warning-text" style="display:none; margin-left: 10px; font-size: 12px; color: var(--workshop-error);">
                                     <i class="fa-solid fa-exclamation-triangle"></i> 文件长度不得超过8192
                                 </span>
@@ -491,16 +492,22 @@ function checkJsonLength() {
     const length = content.length;
     const MAX_LENGTH = 8192;
     
+    const $counter = $('#json-length-counter');
     const $warning = $('#json-length-warning');
     const $textarea = $('#field-file');
+    
+    // Update counter text
+    $counter.text(`${length} / ${MAX_LENGTH}`);
     
     if (length > MAX_LENGTH) {
         $warning.show();
         $textarea.addClass('validation-error');
+        $counter.addClass('error');
         return false;
     } else {
         $warning.hide();
         $textarea.removeClass('validation-error');
+        $counter.removeClass('error');
         return true;
     }
 }
@@ -1564,12 +1571,20 @@ async function getIndexedDBData() {
 }
 
 // ==================== 文件预览更新 ====================
-
 async function updateFilePreview() {
     const $preview = $('#field-file');
+    
+    // [修改 2] 获取北京时间 (UTC+8)
+    const now = new Date();
+    // 8小时 * 60分钟 * 60秒 * 1000毫秒
+    const offset = 8 * 60 * 60 * 1000; 
+    // 创建一个偏移后的日期对象，toISOString() 会输出偏移后的时间，但带 'Z'
+    // 我们把 'Z' 替换为 '+08:00' 以符合 ISO 8601 且表示正确的时区意义
+    const beijingTimeStr = new Date(now.getTime() + offset).toISOString().replace('Z', '+08:00');
+
     const exportData = {
         version: '1.0',
-        exportTime: new Date().toISOString(),
+        exportTime: beijingTimeStr, // 使用北京时间
         worldBook: [],
         localStorage: {},
         indexedDB: [],
@@ -1642,6 +1657,9 @@ async function updateFilePreview() {
     // 更新预览
     const jsonStr = JSON.stringify(exportData, null, 2);
     $preview.val(jsonStr);
+    
+    // [修改 1] 程序修改值后，手动触发长度校验以更新计数器
+    checkJsonLength();
 }
 
 // ==================== 创意工坊数据加载 ====================
@@ -2341,8 +2359,8 @@ function validateForm() {
         return { valid: false, message: '作者必填，且不超过20个字符' };
     }
     
-    if (!version || !/^\d+\.\d+$/.test(version)) {
-        return { valid: false, message: '版本号格式错误，请使用 X.X 格式' };
+    if (!version || !/^\d{1,2}\.\d{1,2}$/.test(version)) {
+        return { valid: false, message: '版本号格式错误，请使用 X.X 格式 (如 1.0)' };
     }
     
     // 验证标签
