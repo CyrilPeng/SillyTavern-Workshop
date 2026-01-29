@@ -259,10 +259,12 @@ export class UIRenderer {
      * @param {Array} stores - 数据表数组
      */
     renderIndexedDBStoreSelector(stores) {
-        const $select = $('#idb-store-select');
+        const $storeSelect = $('#idb-store-select');
+        const $keySelect = $('#idb-key-select');
 
         if (stores.length === 0) {
-            $select.html('<option value="">暂无数据表</option>');
+            $storeSelect.html('<option value="">暂无数据表</option>');
+            $keySelect.html('<option value="">暂无数据</option>').prop('disabled', true);
             return;
         }
 
@@ -271,46 +273,124 @@ export class UIRenderer {
             html += `<option value="${escapeHtml(store.value)}">${escapeHtml(store.displayName)}</option>`;
         });
 
-        $select.html(html);
+        $storeSelect.html(html);
+        $keySelect.html('<option value="">-- 请先选择数据表 --</option>').prop('disabled', true);
     }
 
     /**
-     * 渲染 IndexedDB 键列表
+     * 渲染 IndexedDB 键选择器
      * @param {Array} keys - 键数组
      * @param {string} dbName - 数据库名
      * @param {string} storeName - 表名
      */
-    renderIndexedDBKeysList(keys, dbName, storeName) {
-        const $list = $('#indexeddb-list');
+    renderIndexedDBKeySelector(keys, dbName, storeName) {
+        const $keySelect = $('#idb-key-select');
 
         if (keys.length === 0) {
-            $list.html(createEmptyMessage('该数据表为空'));
+            $keySelect.html('<option value="">该数据表为空</option>').prop('disabled', true);
+            $('#indexeddb-list').html(createEmptyMessage('该数据表为空'));
             return;
         }
 
-        let html = `<div class="list-header"><small>${escapeHtml(dbName)} / ${escapeHtml(storeName)} - 共 ${keys.length} 个键</small></div>`;
-
+        let html = `<option value="">-- 请选择键 (${keys.length} 个) --</option>`;
         keys.forEach((key, index) => {
-            const keyId = `idb-key-${dbName}-${storeName}-${index}`;
-            const checked = state.selectedIndexedDBItems.has(keyId);
-            html += createIndexedDBListItem({ key, dbName, storeName }, index, checked);
+            const keyStr = typeof key === 'object' ? JSON.stringify(key) : String(key);
+            const displayKey = keyStr.length > 50 ? keyStr.substring(0, 50) + '...' : keyStr;
+            html += `<option value="${index}">${escapeHtml(displayKey)}</option>`;
+        });
+
+        $keySelect.html(html).prop('disabled', false);
+        $('#indexeddb-list').html(createEmptyMessage('请从上方选择键', 'fa-hand-pointer'));
+    }
+
+    /**
+     * 渲染 IndexedDB 子项列表（键值是数组时显示数组元素）
+     * @param {Array} items - 子项数组
+     * @param {string} dbName - 数据库名
+     * @param {string} storeName - 表名
+     * @param {IDBValidKey} key - 键
+     */
+    renderIndexedDBSubItemsList(items, dbName, storeName, key) {
+        const $list = $('#indexeddb-list');
+        const keyStr = typeof key === 'object' ? JSON.stringify(key) : String(key);
+
+        if (!Array.isArray(items) || items.length === 0) {
+            // 如果不是数组或为空数组，显示提示
+            if (!Array.isArray(items)) {
+                // 非数组值，显示为单个可选项
+                const itemId = `idb-${dbName}-${storeName}-${keyStr}-single`;
+                const checked = state.selectedIndexedDBItems.has(itemId);
+                $list.html(`
+                    <div class="list-header"><small>键 "${escapeHtml(keyStr)}" 的值（非数组）</small></div>
+                    <label class="checkbox-item" data-id="${escapeHtml(itemId)}" data-db="${escapeHtml(dbName)}" data-store="${escapeHtml(storeName)}" data-key="${escapeHtml(keyStr)}" data-sub-index="-1">
+                        <input type="checkbox" ${checked ? 'checked' : ''} />
+                        <span class="checkbox-label">
+                            <strong>完整值</strong>
+                            <span class="entry-size">${typeof items}</span>
+                        </span>
+                    </label>
+                `);
+            } else {
+                $list.html(createEmptyMessage('该键的值为空数组'));
+            }
+            return;
+        }
+
+        let html = `<div class="list-header"><small>键 "${escapeHtml(keyStr)}" - 共 ${items.length} 个子项</small></div>`;
+
+        items.forEach((item, index) => {
+            const itemId = `idb-${dbName}-${storeName}-${keyStr}-${index}`;
+            const checked = state.selectedIndexedDBItems.has(itemId);
+
+            // 尝试获取子项的显示名称
+            let displayName = `子项 ${index + 1}`;
+            let subInfo = '';
+
+            if (item && typeof item === 'object') {
+                // 尝试从常见字段获取名称
+                displayName = item.name || item.id || item.title || item.key || `子项 ${index + 1}`;
+                // 获取额外信息
+                if (item.id && item.id !== displayName) subInfo = `ID: ${item.id}`;
+            } else {
+                displayName = String(item).substring(0, 50);
+            }
+
+            html += `
+                <label class="checkbox-item" data-id="${escapeHtml(itemId)}" data-db="${escapeHtml(dbName)}" data-store="${escapeHtml(storeName)}" data-key="${escapeHtml(keyStr)}" data-sub-index="${index}">
+                    <input type="checkbox" ${checked ? 'checked' : ''} />
+                    <span class="checkbox-label">
+                        <strong>${escapeHtml(String(displayName))}</strong>
+                        ${subInfo ? `<span class="entry-key">${escapeHtml(subInfo)}</span>` : ''}
+                    </span>
+                </label>
+            `;
         });
 
         $list.html(html);
     }
 
     /**
+     * 渲染 IndexedDB 键列表（旧方法，保留兼容）
+     * @deprecated 使用 renderIndexedDBKeySelector 和 renderIndexedDBSubItemsList
+     */
+    renderIndexedDBKeysList(keys, dbName, storeName) {
+        // 转发到新方法
+        this.renderIndexedDBKeySelector(keys, dbName, storeName);
+    }
+
+    /**
      * 显示 IndexedDB 加载中状态
      */
     showIndexedDBLoading() {
-        $('#indexeddb-list').html(createLoadingSpinner('加载键值中...'));
+        $('#indexeddb-list').html(createLoadingSpinner('加载数据中...'));
     }
 
     /**
      * 显示 IndexedDB 未选择表提示
      */
     showIndexedDBSelectPrompt() {
-        $('#indexeddb-list').html(createEmptyMessage('请先从上方下拉框选择数据表', 'fa-hand-pointer'));
+        $('#idb-key-select').html('<option value="">-- 请先选择数据表 --</option>').prop('disabled', true);
+        $('#indexeddb-list').html(createEmptyMessage('请先从上方选择数据表和键', 'fa-hand-pointer'));
     }
 
     /**
@@ -318,6 +398,7 @@ export class UIRenderer {
      */
     showIndexedDBNotSupported() {
         $('#idb-store-select').html('<option value="">浏览器不支持</option>');
+        $('#idb-key-select').html('<option value="">浏览器不支持</option>').prop('disabled', true);
         $('#indexeddb-list').html(`
             <div class="info-message">
                 <i class="fa-solid fa-info-circle"></i>

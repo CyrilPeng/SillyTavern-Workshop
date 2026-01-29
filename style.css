@@ -472,6 +472,53 @@
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
 }
 
+/* IndexedDB 双层选择器容器 */
+.idb-selectors {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.idb-selectors label {
+    font-size: 12px;
+    color: var(--workshop-text-muted);
+    margin-bottom: 4px;
+    display: block;
+}
+
+.idb-key-selector {
+    flex-shrink: 0;
+}
+
+.idb-key-selector select {
+    width: 100%;
+    padding: 10px 12px;
+    border: 2px solid var(--workshop-border);
+    border-radius: var(--workshop-radius-sm);
+    background: var(--workshop-surface);
+    color: var(--workshop-text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.idb-key-selector select:hover:not(:disabled) {
+    border-color: var(--workshop-primary);
+}
+
+.idb-key-selector select:focus {
+    outline: none;
+    border-color: var(--workshop-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.idb-key-selector select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .section-header {
     display: flex;
     align-items: center;

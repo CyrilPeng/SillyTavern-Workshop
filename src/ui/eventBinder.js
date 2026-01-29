@@ -203,103 +203,150 @@ export class EventBinder {
     // ==================== IndexedDB 事件 ====================
 
     bindIndexedDBEvents() {
-        // IndexedDB 表选择
+        // IndexedDB 数据表选择
         $(document).on('change', '#idb-store-select', async (e) => {
             const value = $(e.target).val();
             if (!value) {
                 this.renderer.showIndexedDBSelectPrompt();
                 state.currentIDBStore = null;
                 state.currentIDBKeys = [];
+                state.currentIDBKey = null;
+                state.currentIDBKeyValue = null;
                 return;
             }
 
             const [dbName, storeName] = value.split('|||');
             state.currentIDBStore = { dbName, storeName };
+            state.currentIDBKey = null;
+            state.currentIDBKeyValue = null;
 
             this.renderer.showIndexedDBLoading();
 
             try {
                 const keys = await this.databaseService.getStoreKeys(dbName, storeName);
                 state.currentIDBKeys = keys;
-                this.renderer.renderIndexedDBKeysList(keys, dbName, storeName);
+                this.renderer.renderIndexedDBKeySelector(keys, dbName, storeName);
             } catch (e) {
                 console.error('[EventBinder] 获取 IndexedDB 键失败:', e);
                 this.renderer.showIndexedDBError('获取键值失败');
             }
         });
 
-        // IndexedDB 勾选
-        $(document).on('change', '#indexeddb-list input[type="checkbox"]', async (e) => {
+        // IndexedDB 键选择
+        $(document).on('change', '#idb-key-select', async (e) => {
+            const keyIndex = $(e.target).val();
+            if (keyIndex === '' || keyIndex === null) {
+                state.currentIDBKey = null;
+                state.currentIDBKeyValue = null;
+                $('#indexeddb-list').html('<div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请从上方选择键</div>');
+                return;
+            }
+
+            const { dbName, storeName } = state.currentIDBStore;
+            const key = state.currentIDBKeys[parseInt(keyIndex)];
+            state.currentIDBKey = key;
+
+            this.renderer.showIndexedDBLoading();
+
+            try {
+                const value = await this.databaseService.getStoreValue(dbName, storeName, key);
+                state.currentIDBKeyValue = value;
+                this.renderer.renderIndexedDBSubItemsList(value, dbName, storeName, key);
+            } catch (e) {
+                console.error('[EventBinder] 获取 IndexedDB 值失败:', e);
+                this.renderer.showIndexedDBError('获取数据失败');
+            }
+        });
+
+        // IndexedDB 子项勾选
+        $(document).on('change', '#indexeddb-list input[type="checkbox"]', (e) => {
             const $item = $(e.target).closest('.checkbox-item');
-            const keyId = $item.data('id');
+            const itemId = $item.data('id');
             const dbName = $item.data('db');
             const storeName = $item.data('store');
-            const keyIndex = parseInt($item.data('key-index'));
-            const key = state.currentIDBKeys[keyIndex];
+            const keyStr = $item.data('key');
+            const subIndex = parseInt($item.data('sub-index'));
 
             if (e.target.checked) {
-                state.selectedIndexedDBItems.add(keyId);
+                state.selectedIndexedDBItems.add(itemId);
 
                 // 缓存数据
-                if (!state.idbDataCache[keyId]) {
-                    try {
-                        const value = await this.databaseService.getStoreValue(dbName, storeName, key);
-                        state.idbDataCache[keyId] = {
-                            database: dbName,
-                            store: storeName,
-                            key: key,
-                            data: value
-                        };
-                    } catch (e) {
-                        console.warn('[EventBinder] 获取 IndexedDB 值失败:', e);
+                if (!state.idbDataCache[itemId]) {
+                    let data;
+                    if (subIndex === -1) {
+                        // 非数组值，取整个值
+                        data = state.currentIDBKeyValue;
+                    } else {
+                        // 数组元素
+                        data = state.currentIDBKeyValue[subIndex];
                     }
+
+                    state.idbDataCache[itemId] = {
+                        database: dbName,
+                        store: storeName,
+                        key: keyStr,
+                        subIndex: subIndex,
+                        data: data
+                    };
                 }
             } else {
-                state.selectedIndexedDBItems.delete(keyId);
-                delete state.idbDataCache[keyId];
+                state.selectedIndexedDBItems.delete(itemId);
+                delete state.idbDataCache[itemId];
             }
 
             this.updatePreviewFromSelection();
         });
 
         // 全选 IndexedDB
-        $(document).on('click', '#idb-select-all', async () => {
+        $(document).on('click', '#idb-select-all', () => {
             const checkboxes = $('#indexeddb-list input[type="checkbox"]');
             checkboxes.prop('checked', true);
 
-            for (const el of checkboxes.closest('.checkbox-item').toArray()) {
+            const { dbName, storeName } = state.currentIDBStore || {};
+            const keyStr = typeof state.currentIDBKey === 'object'
+                ? JSON.stringify(state.currentIDBKey)
+                : String(state.currentIDBKey || '');
+
+            checkboxes.closest('.checkbox-item').each((_, el) => {
                 const $item = $(el);
-                const keyId = $item.data('id');
-                const dbName = $item.data('db');
-                const storeName = $item.data('store');
-                const keyIndex = parseInt($item.data('key-index'));
-                const key = state.currentIDBKeys[keyIndex];
+                const itemId = $item.data('id');
+                const subIndex = parseInt($item.data('sub-index'));
 
-                state.selectedIndexedDBItems.add(keyId);
+                state.selectedIndexedDBItems.add(itemId);
 
-                if (!state.idbDataCache[keyId]) {
-                    try {
-                        const value = await this.databaseService.getStoreValue(dbName, storeName, key);
-                        state.idbDataCache[keyId] = {
-                            database: dbName,
-                            store: storeName,
-                            key: key,
-                            data: value
-                        };
-                    } catch (e) {
-                        console.warn('[EventBinder] 批量获取 IndexedDB 值失败:', e);
+                if (!state.idbDataCache[itemId]) {
+                    let data;
+                    if (subIndex === -1) {
+                        data = state.currentIDBKeyValue;
+                    } else {
+                        data = state.currentIDBKeyValue[subIndex];
                     }
+
+                    state.idbDataCache[itemId] = {
+                        database: dbName,
+                        store: storeName,
+                        key: keyStr,
+                        subIndex: subIndex,
+                        data: data
+                    };
                 }
-            }
+            });
 
             this.updatePreviewFromSelection();
         });
 
-        // 取消全选 IndexedDB
+        // 取消全选 IndexedDB（只取消当前键的子项）
         $(document).on('click', '#idb-deselect-all', () => {
-            $('#indexeddb-list input[type="checkbox"]').prop('checked', false);
-            state.selectedIndexedDBItems.clear();
-            state.idbDataCache = {};
+            const checkboxes = $('#indexeddb-list input[type="checkbox"]');
+            checkboxes.prop('checked', false);
+
+            // 只删除当前显示的子项
+            checkboxes.closest('.checkbox-item').each((_, el) => {
+                const itemId = $(el).data('id');
+                state.selectedIndexedDBItems.delete(itemId);
+                delete state.idbDataCache[itemId];
+            });
+
             this.updatePreviewFromSelection();
         });
     }
@@ -1023,14 +1070,52 @@ export class EventBinder {
 
         // 始终导出 IndexedDB 数据（如果有选中）
         if (state.selectedIndexedDBItems.size > 0 && Object.keys(state.idbDataCache).length > 0) {
-            const idbData = [];
+            // 按 database + store + key 分组，合并同一个键下的选中子项
+            const groupedData = {};
+
             Object.values(state.idbDataCache).forEach(item => {
+                const groupKey = `${item.database}|||${item.store}|||${item.key}`;
+
+                if (!groupedData[groupKey]) {
+                    groupedData[groupKey] = {
+                        database: item.database,
+                        store: item.store,
+                        key: item.key,
+                        isSingleValue: false,
+                        singleValue: null,
+                        values: []
+                    };
+                }
+
+                // 如果是非数组值（subIndex === -1），直接存储整个值
+                if (item.subIndex === -1) {
+                    groupedData[groupKey].isSingleValue = true;
+                    groupedData[groupKey].singleValue = item.data;
+                } else {
+                    // 数组元素，添加到值数组中
+                    groupedData[groupKey].values.push(item.data);
+                }
+            });
+
+            // 转换为最终格式
+            const idbData = [];
+            Object.values(groupedData).forEach(group => {
+                let value;
+                if (group.isSingleValue) {
+                    // 非数组值，直接使用
+                    value = group.singleValue;
+                } else {
+                    // 数组元素，使用收集的值数组
+                    value = group.values;
+                }
+
                 idbData.push({
-                    database: item.database,
-                    store: item.store,
-                    data: [{ key: item.key, value: item.data }]
+                    database: group.database,
+                    store: group.store,
+                    data: [{ key: group.key, value: value }]
                 });
             });
+
             if (idbData.length > 0) {
                 exportData.indexedDB = idbData;
             }

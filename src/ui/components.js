@@ -223,13 +223,22 @@ export function createUploadPage() {
                                         </button>
                                     </div>
                                 </div>
-                                <div class="idb-store-selector">
-                                    <select id="idb-store-select" class="form-select">
-                                        <option value="">-- 请先选择数据表 --</option>
-                                    </select>
+                                <div class="idb-selectors">
+                                    <div class="idb-store-selector">
+                                        <label>数据表:</label>
+                                        <select id="idb-store-select" class="form-select">
+                                            <option value="">-- 请先选择数据表 --</option>
+                                        </select>
+                                    </div>
+                                    <div class="idb-key-selector">
+                                        <label>键:</label>
+                                        <select id="idb-key-select" class="form-select" disabled>
+                                            <option value="">-- 请先选择数据表 --</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div id="indexeddb-list" class="checkbox-list">
-                                    <div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请先从上方下拉框选择数据表</div>
+                                    <div class="empty-message"><i class="fa-solid fa-hand-pointer"></i> 请先从上方选择数据表和键</div>
                                 </div>
                             </div>
                         </div>
