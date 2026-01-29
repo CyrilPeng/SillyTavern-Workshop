@@ -1669,7 +1669,7 @@ async function loadWorkshopData() {
     $results.html('<div class="loading-spinner"><i class="fa-solid fa-spinner fa-spin"></i> 正在加载创意工坊数据...</div>');
     
     try {
-        const response = await fetch(`${WORKSHOP_BASE_URL}/index.json`);
+        const response = await fetch(`${API_BASE_URL}/index.json`);
         if (!response.ok) {
             throw new Error('获取创意工坊目录失败');
         }
