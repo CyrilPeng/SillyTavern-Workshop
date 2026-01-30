@@ -897,6 +897,15 @@
     color: var(--workshop-text);
     font-size: 18px;
     font-weight: 600;
+    flex: 1;
+    min-width: 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.item-header .item-badges {
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .item-type {
