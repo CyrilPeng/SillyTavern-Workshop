@@ -60,9 +60,11 @@ export class WorkshopApi {
      * @returns {Promise<Object>} 文件内容（JSON 对象）
      */
     async downloadWorkshopItemFromUrl(url) {
-        const response = await fetch(url);
+        // 尝试处理中文路径，避免重复编码
+        const safeUrl = decodeURI(url) === url ? encodeURI(url) : url;
+        const response = await fetch(safeUrl);
         if (!response.ok) {
-            throw new Error('下载文件失败');
+            throw new Error(`下载文件失败: ${response.status} ${response.statusText}`);
         }
         return await response.json();
     }
@@ -75,7 +77,7 @@ export class WorkshopApi {
     async downloadWorkshopItemAsBlob(fileName) {
         const response = await fetch(`${this.workshopBaseUrl}/${fileName}`);
         if (!response.ok) {
-            throw new Error('下载文件失败');
+            throw new Error(`下载文件失败: ${response.status} ${response.statusText}`);
         }
         return await response.blob();
     }
@@ -86,9 +88,11 @@ export class WorkshopApi {
      * @returns {Promise<Blob>} 文件 Blob
      */
     async downloadWorkshopItemAsBlobFromUrl(url) {
-        const response = await fetch(url);
+        // 尝试处理中文路径
+        const safeUrl = decodeURI(url) === url ? encodeURI(url) : url;
+        const response = await fetch(safeUrl);
         if (!response.ok) {
-            throw new Error('下载文件失败');
+            throw new Error(`下载文件失败: ${response.status} ${response.statusText}`);
         }
         return await response.blob();
     }

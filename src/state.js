@@ -17,7 +17,7 @@ class PluginState {
         /** @type {Set<string>} 选中的 LocalStorage 键名 */
         this.selectedLocalStorageKeys = new Set();
 
-        /** @type {Set<string>} 选中的 IndexedDB 条目ID */
+        /** @type {Set<string>} 选中的 IndexedDB 子项ID */
         this.selectedIndexedDBItems = new Set();
 
         /** @type {Object|null} 当前选中的 IndexedDB 数据表信息 */
@@ -26,7 +26,13 @@ class PluginState {
         /** @type {Array} 当前 IndexedDB 数据表的所有键 */
         this.currentIDBKeys = [];
 
-        /** @type {Object} IndexedDB 数据缓存 */
+        /** @type {IDBValidKey|null} 当前选中的 IndexedDB 键 */
+        this.currentIDBKey = null;
+
+        /** @type {Array|null} 当前 IndexedDB 键的值（如果是数组） */
+        this.currentIDBKeyValue = null;
+
+        /** @type {Object} IndexedDB 数据缓存，格式: { itemId: { database, store, key, subIndex, data } } */
         this.idbDataCache = {};
 
         /** @type {Array} 所有 IndexedDB 数据表列表 */
@@ -73,6 +79,8 @@ class PluginState {
         this.idbDataCache = {};
         this.currentIDBStore = null;
         this.currentIDBKeys = [];
+        this.currentIDBKey = null;
+        this.currentIDBKeyValue = null;
     }
 
     /**
