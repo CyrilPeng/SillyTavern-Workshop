@@ -4,8 +4,8 @@
  * 【注意】所有 UI 文本中的 "世界书" 对应内部变量名 worldInfo
  */
 
-import { escapeHtml, truncate } from '../utils.js';
-import { CONTENT_TYPE } from '../constants.js';
+import { escapeHtml, truncate, formatSize } from '../utils.js';
+import { CONTENT_TYPE, MAX_JSON_SIZE } from '../constants.js';
 
 /**
  * 创建主面板 HTML
@@ -249,9 +249,9 @@ export function createUploadPage() {
                         <div class="section-header">
                             <h4>
                                 <i class="fa-solid fa-file-code"></i> 文件预览 (JSON)
-                                <span id="json-length-counter" class="char-counter">0 B / 8 KB</span>
+                                <span id="json-length-counter" class="char-counter">0 B / ${formatSize(MAX_JSON_SIZE)}</span>
                                 <span id="json-length-warning" class="validation-warning-text" style="display:none; margin-left: 10px; font-size: 12px; color: var(--workshop-error);">
-                                    <i class="fa-solid fa-exclamation-triangle"></i> 文件大小不得超过 8 KB
+                                    <i class="fa-solid fa-exclamation-triangle"></i> 文件大小不得超过 ${formatSize(MAX_JSON_SIZE)}
                                 </span>
                             </h4>
                             <div class="section-actions">

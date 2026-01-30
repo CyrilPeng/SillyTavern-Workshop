@@ -37,7 +37,7 @@ export const AUTH_USER_KEY = 'st_workshop_auth_user';
  * JSON 文件最大大小限制（字节）
  * @constant {number}
  */
-export const MAX_JSON_SIZE = 8192;
+export const MAX_JSON_SIZE = 20480;
 
 /**
  * 每页显示的条目数

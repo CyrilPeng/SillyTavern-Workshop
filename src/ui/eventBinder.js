@@ -451,6 +451,11 @@ export class EventBinder {
         $(document).on('input', '#field-description', () => {
             this.renderer.updateFieldCounter('field-description', 'desc-count');
         });
+
+        // 版本号变化时更新预览
+        $(document).on('input', '#field-version', debounce(() => {
+            this.updatePreviewFromSelection();
+        }, 300));
     }
 
     // ==================== 上传事件 ====================
@@ -1040,7 +1045,7 @@ export class EventBinder {
     buildExportData() {
         const exportData = {
             _meta: {
-                version: '1.0',
+                version: $('#field-version').val().trim() || '1.0',
                 exportTime: getBeijingTimeISO(),
                 source: 'SillyTavernWorkshop'
             }

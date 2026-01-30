@@ -477,7 +477,7 @@ export class UIRenderer {
         $('#field-file').val('');
         $('#json-length-warning').hide();
         $('#field-file').removeClass('validation-error');
-        $('#json-length-counter').text('0 B / 8 KB').removeClass('error');
+        $('#json-length-counter').text(`0 B / ${formatSize(MAX_JSON_SIZE)}`).removeClass('error');
     }
 
     // ==================== 创意工坊结果渲染 ====================
