@@ -6,7 +6,7 @@
     "js": "index.js",
     "css": "style.css",
     "author": "Workshop Team",
-    "version": "3.0.2",
+    "version": "3.1.0",
     "homePage": "https://github.com/your-repo/SillyTavernWorkshop",
     "auto_update": false
 }

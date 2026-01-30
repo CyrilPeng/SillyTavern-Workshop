@@ -66,12 +66,37 @@ export class DatabaseService {
     }
 
     /**
-     * 设置 LocalStorage 值
+     * 设置 LocalStorage 值 (自动合并逻辑)
      * @param {string} key - 键名
      * @param {any} value - 值
      */
     setLocalStorageValue(key, value) {
-        const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
+        let finalValue = value;
+        const existingString = localStorage.getItem(key);
+
+        if (existingString !== null) {
+            try {
+                const existingValue = JSON.parse(existingString);
+                
+                // 两种都是数组：合并数组
+                if (Array.isArray(existingValue) && Array.isArray(value)) {
+                    finalValue = existingValue.concat(value);
+                } 
+                // 两种都是对象且非数组：合并对象
+                else if (
+                    typeof existingValue === 'object' && existingValue !== null && !Array.isArray(existingValue) &&
+                    typeof value === 'object' && value !== null && !Array.isArray(value)
+                ) {
+                    finalValue = { ...existingValue, ...value };
+                }
+                // 其他情况（基本类型或类型不匹配）：默认覆盖（或者可以考虑字符串拼接，但场景较少）
+            } catch (e) {
+                // 解析失败，按原始值处理
+                // 如果是字符串且用户期望追加，这里很难判断，暂保持覆盖或不做特殊处理
+            }
+        }
+
+        const stringValue = typeof finalValue === 'string' ? finalValue : JSON.stringify(finalValue);
         localStorage.setItem(key, stringValue);
     }
 
@@ -377,8 +402,45 @@ export class DatabaseService {
                 if (Array.isArray(data)) {
                     data.forEach(item => {
                         if (item.key !== undefined) {
-                            store.put(item.value, item.key);
+                            // 检查键是否存在，以实现追加/合并逻辑
+                            const request = store.get(item.key);
+                            
+                            request.onsuccess = () => {
+                                const existingValue = request.result;
+                                let finalValue = item.value;
+
+                                if (existingValue !== undefined) {
+                                    // 键已存在：根据类型进行合并
+                                    
+                                    // 1. 都是数组：合并数组
+                                    if (Array.isArray(existingValue) && Array.isArray(finalValue)) {
+                                        finalValue = existingValue.concat(finalValue);
+                                    } 
+                                    // 2. 都是对象（且非数组）：合并对象
+                                    else if (
+                                        typeof existingValue === 'object' && existingValue !== null && !Array.isArray(existingValue) &&
+                                        typeof finalValue === 'object' && finalValue !== null && !Array.isArray(finalValue)
+                                    ) {
+                                        finalValue = { ...existingValue, ...finalValue };
+                                    }
+                                    // 3. 其他情况：默认覆盖（用户要求不改键名，且无法逻辑追加时，通常只能覆盖）
+                                }
+                                
+                                // 写入合并后的值（或新值）
+                                store.put(finalValue, item.key);
+                            };
+                            
+                            request.onerror = (e) => {
+                                // 读取失败，尝试直接写入（防止因读取错误导致数据丢失）
+                                e.preventDefault(); 
+                                try {
+                                    store.put(item.value, item.key);
+                                } catch (err) {
+                                    console.warn(`[DatabaseService] 写入失败:`, err);
+                                }
+                            };
                         } else {
+                            // 没有指定键，直接添加（自动生成键）
                             store.add(item.value || item);
                         }
                     });
