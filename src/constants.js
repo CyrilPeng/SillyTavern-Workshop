@@ -13,13 +13,13 @@ export const EXTENSION_NAME = 'SillyTavernWorkshop';
  * API 基础地址
  * @constant {string}
  */
-export const API_BASE_URL = 'https://st-api.pengcyril.dpdns.org';
+export const API_BASE_URL = 'https://st-workshop-api.pengcyril.dpdns.org';
 
 /**
  * 创意工坊资源基础地址
  * @constant {string}
  */
-export const WORKSHOP_BASE_URL = 'https://st-workshop.pengcyril.dpdns.org';
+export const WORKSHOP_BASE_URL = 'https://st-workshop-api.pengcyril.dpdns.org';
 
 /**
  * 本地存储鉴权 Token 的键名
