@@ -264,7 +264,8 @@ export class EventBinder {
             const itemId = $item.data('id');
             const dbName = $item.data('db');
             const storeName = $item.data('store');
-            const keyStr = $item.data('key');
+            // Fix: 直接使用 state 中的当前 key，而不是从 DOM 读取（DOM 中可能没有或被转成字符串）
+            const currentKey = state.currentIDBKey;
             const subIndex = parseInt($item.data('sub-index'));
 
             if (e.target.checked) {
@@ -284,7 +285,7 @@ export class EventBinder {
                     state.idbDataCache[itemId] = {
                         database: dbName,
                         store: storeName,
-                        key: keyStr,
+                        key: currentKey,
                         subIndex: subIndex,
                         data: data
                     };
@@ -303,9 +304,7 @@ export class EventBinder {
             checkboxes.prop('checked', true);
 
             const { dbName, storeName } = state.currentIDBStore || {};
-            const keyStr = typeof state.currentIDBKey === 'object'
-                ? JSON.stringify(state.currentIDBKey)
-                : String(state.currentIDBKey || '');
+            const currentKey = state.currentIDBKey;
 
             checkboxes.closest('.checkbox-item').each((_, el) => {
                 const $item = $(el);
@@ -325,7 +324,7 @@ export class EventBinder {
                     state.idbDataCache[itemId] = {
                         database: dbName,
                         store: storeName,
-                        key: keyStr,
+                        key: currentKey,
                         subIndex: subIndex,
                         data: data
                     };
@@ -677,8 +676,14 @@ export class EventBinder {
             this.workshopApi.triggerDownload(blob, fileName || downloadUrl.split('/').pop());
             showToast('下载成功', 'success');
         } catch (e) {
-            console.error('[EventBinder] 下载失败:', e);
-            showToast('下载失败', 'error');
+            console.error('[EventBinder] 自动下载失败，尝试直接打开链接:', e);
+            if (downloadUrl) {
+                // 降级处理：直接打开链接
+                window.open(downloadUrl, '_blank');
+                showToast('自动下载失败，已尝试在浏览器中打开', 'warning');
+            } else {
+                showToast('下载失败，且无直接链接可用', 'error');
+            }
         }
     }
 

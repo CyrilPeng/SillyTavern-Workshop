@@ -149,10 +149,10 @@ export function createUploadPage() {
             <!-- 右侧：数据选择和预览 -->
             <div class="upload-data-section">
                 <div class="data-source-tabs">
-                    <button class="data-tab active" data-source="worldInfo">
+                    <button class="data-tab" data-source="worldInfo" style="display: none;">
                         <i class="fa-solid fa-book"></i> 世界书
                     </button>
-                    <button class="data-tab" data-source="chatdata">
+                    <button class="data-tab active" data-source="chatdata">
                         <i class="fa-solid fa-comments"></i> 聊天数据
                     </button>
                 </div>
@@ -162,7 +162,7 @@ export function createUploadPage() {
                     <!-- 左侧：数据选择 -->
                     <div class="data-select-panel">
                         <!-- 世界书选择区 -->
-                        <div id="worldInfo-section" class="data-source-section active">
+                        <div id="worldInfo-section" class="data-source-section">
                             <div class="section-header">
                                 <h4>选择世界书词条</h4>
                                 <div class="section-actions">
@@ -181,7 +181,7 @@ export function createUploadPage() {
                         </div>
 
                         <!-- 聊天数据选择区 -->
-                        <div id="chatdata-section" class="data-source-section">
+                        <div id="chatdata-section" class="data-source-section active">
                             <!-- 标签页切换 -->
                             <div class="chatdata-tabs">
                                 <button class="chatdata-tab active" data-target="localstorage">
