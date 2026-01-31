@@ -100,6 +100,61 @@ export class UIRenderer {
                 box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             }
         </style>`);
+
+        // Check for updates
+        this.checkVersion();
+    }
+
+    /**
+     * 检查新版本
+     */
+    async checkVersion() {
+        try {
+            // 获取当前版本 (尝试从 manifest 读取)
+            // 假设路径为标准插件路径，如果失败则回退到硬编码版本（需手动维护）
+            let currentVersion = '3.1.0'; 
+            try {
+                // 尝试查找 manifest
+                // 使用 import.meta.url 获取相对路径，避免硬编码文件夹名称
+                const manifestUrl = new URL('../../manifest.json', import.meta.url).href;
+                const manifest = await $.getJSON(manifestUrl);
+                if (manifest && manifest.version) {
+                    currentVersion = manifest.version;
+                }
+            } catch (e) {
+                console.warn('[SillyTavernWorkshop] 无法读取本地 manifest.json，使用默认版本:', currentVersion);
+            }
+
+            // 获取远程 tag
+            const response = await fetch('https://api.github.com/repos/CyrilPeng/SillyTavern-Workshop/tags');
+            if (!response.ok) return;
+            
+            const tags = await response.json();
+            if (!tags || tags.length === 0) return;
+
+            const latestTag = tags[0].name;
+            // 移除可能存在的 'v' 前缀进行比较
+            const cleanLatest = latestTag.replace(/^v/, '');
+            
+            if (cleanLatest !== currentVersion) {
+                console.log(`[SillyTavernWorkshop] 检测到新版本: ${latestTag} (当前: ${currentVersion})`);
+                
+                // 应用效果到主界面按钮
+                const $menuBtn = $('#workshop-menu-button i');
+                const $panelLogo = $('.workshop-title i');
+                
+                const tooltipText = `检测到新版本: ${latestTag}`;
+                
+                // 添加类和提示
+                $menuBtn.addClass('gold-flash').attr('title', tooltipText);
+                $panelLogo.addClass('gold-flash').attr('title', tooltipText);
+                
+                // 给父容器也加提示
+                $('#workshop-menu-button').attr('title', `酒馆创意工坊 - ${tooltipText}`);
+            }
+        } catch (error) {
+            console.error('[SillyTavernWorkshop] 版本检测失败:', error);
+        }
     }
 
     // ==================== 面板操作 ====================

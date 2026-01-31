@@ -1911,3 +1911,16 @@
     color: var(--workshop-error);
     font-weight: bold;
 }
+
+/* ==================== Version Check Animation ==================== */
+@keyframes gold-flash {
+    0% { color: #FFD700; opacity: 1; text-shadow: 0 0 5px #FFD700; }
+    50% { color: #FFA500; opacity: 0.7; text-shadow: 0 0 2px #FFA500; }
+    100% { color: #FFD700; opacity: 1; text-shadow: 0 0 5px #FFD700; }
+}
+
+.gold-flash {
+    color: #FFD700 !important;
+    animation: gold-flash 2s infinite ease-in-out;
+    cursor: help;
+}
