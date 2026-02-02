@@ -153,6 +153,40 @@ export class WorkshopApi {
     }
 
     /**
+     * 删除创意工坊条目
+     * @param {number|string} id - 条目 ID
+     * @returns {Promise<Object>} 删除结果
+     */
+    async deleteWorkshopItem(id) {
+        const token = this.getToken();
+        if (!token) {
+            throw new Error('请先登录 Discord');
+        }
+
+        const response = await fetch(`${this.apiBaseUrl}/delete`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id })
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('登录已过期，请重新登录');
+            }
+            if (response.status === 403) {
+                throw new Error('您没有权限删除此条目');
+            }
+            const errorText = await response.text();
+            throw new Error(errorText || '删除失败');
+        }
+
+        return await response.json();
+    }
+
+    /**
      * 触发文件下载
      * @param {Blob} blob - 文件 Blob
      * @param {string} fileName - 文件名

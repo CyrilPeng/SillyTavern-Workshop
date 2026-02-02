@@ -14,6 +14,7 @@ export class DiscordAuthModule {
      * @param {string} config.apiBaseUrl - API 基础地址
      * @param {string} [config.storageKey] - Token 存储键名
      * @param {string} [config.userKey] - 用户名存储键名
+     * @param {string} [config.userIdKey] - 用户ID存储键名
      * @param {Function} [config.onAuthChange] - 鉴权状态变化回调
      */
     constructor(config) {
@@ -44,6 +45,23 @@ export class DiscordAuthModule {
      */
     getUser() {
         return localStorage.getItem(this.userKey);
+    }
+
+    /**
+     * 获取当前用户ID (从 Token 动态解析)
+     * @returns {string|null}
+     */
+    getUserId() {
+        const token = this.getToken();
+        if (!token) return null;
+        try {
+            // 解析 JWT Payload
+            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return payload.id || null;
+        } catch (e) {
+            console.error('[DiscordAuthModule] 获取 User ID 失败:', e);
+            return null;
+        }
     }
 
     /**

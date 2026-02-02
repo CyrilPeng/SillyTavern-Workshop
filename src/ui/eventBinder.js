@@ -6,6 +6,7 @@
 import { state } from '../state.js';
 import { debounce, showToast, validateTagLength, getBeijingTimeISO, getByteSize, formatSize } from '../utils.js';
 import { MAX_TAGS, MAX_JSON_SIZE, CONTENT_TYPE } from '../constants.js';
+import { getModalManager } from './modal.js';
 
 /**
  * 事件绑定管理器类
@@ -641,6 +642,13 @@ export class EventBinder {
             this.renderer.closeDetailModal();
         });
 
+        // 删除按钮
+        $(document).on('click', '#modal-delete-btn', async (e) => {
+            e.stopPropagation();
+            const index = parseInt($(e.currentTarget).data('index'));
+            await this.handleDelete(index);
+        });
+
         // 注入弹窗事件
         $(document).on('click', '#inject-modal-close-btn, #inject-modal-cancel-btn', () => {
             this.renderer.hideInjectModal();
@@ -689,6 +697,36 @@ export class EventBinder {
             } else {
                 showToast('下载失败，且无直接链接可用', 'error');
             }
+        }
+    }
+
+    /**
+     * 处理删除
+     * @param {number} index - 条目索引
+     */
+    async handleDelete(index) {
+        const item = state.workshopData?.[index];
+        if (!item) return;
+
+        const confirmed = await getModalManager().confirm({
+            title: '确认删除',
+            message: `确定要删除 "${item.name}" 吗？此操作无法撤销。`,
+            confirmText: '删除',
+            cancelText: '取消'
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await this.workshopApi.deleteWorkshopItem(item.id);
+            showToast('删除成功', 'success');
+            this.renderer.closeDetailModal();
+            // 刷新列表
+            state.workshopData = null;
+            this.loadWorkshopData();
+        } catch (e) {
+            console.error('[EventBinder] 删除失败:', e);
+            showToast(e.message || '删除失败', 'error');
         }
     }
 

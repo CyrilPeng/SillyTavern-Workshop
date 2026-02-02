@@ -562,12 +562,14 @@ export class UIRenderer {
         const endIndex = Math.min(startIndex + PAGE_SIZE, data.length);
         const pageData = data.slice(startIndex, endIndex);
 
+        const currentUserId = this.authModule ? this.authModule.getUserId() : null;
+
         let html = '<div class="results-grid">';
 
         pageData.forEach((item) => {
             // 使用原始索引（如果有），否则回退到 item 在原始数据中的位置
             const originalIndex = item._originalIndex !== undefined ? item._originalIndex : data.indexOf(item);
-            html += createWorkshopItemCard(item, originalIndex);
+            html += createWorkshopItemCard(item, originalIndex, currentUserId);
         });
 
         html += '</div>';
@@ -611,7 +613,8 @@ export class UIRenderer {
 
         $('#modal-title').text(item.name || '未命名');
 
-        const { body, footer } = createDetailModalContent(item, index);
+        const currentUserId = this.authModule ? this.authModule.getUserId() : null;
+        const { body, footer } = createDetailModalContent(item, index, currentUserId);
         $('#modal-body').html(body);
         $('#modal-footer').html(footer);
 

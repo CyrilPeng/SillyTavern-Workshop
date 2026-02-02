@@ -378,9 +378,10 @@ export function createInjectModal() {
  * 创建创意工坊条目卡片 HTML
  * @param {Object} item - 条目数据
  * @param {number} index - 条目索引
+ * @param {string} [currentUserId] - 当前登录用户 ID
  * @returns {string}
  */
-export function createWorkshopItemCard(item, index) {
+export function createWorkshopItemCard(item, index, currentUserId) {
     // 处理 tags：可能是字符串或数组
     let tagsHtml = '';
     if (item.tags) {
@@ -403,10 +404,14 @@ export function createWorkshopItemCard(item, index) {
         return `<span class="item-type ${cls}">${label}</span>`;
     }).join('');
 
+    // 判断是否为自己上传的 MOD
+    const isOwner = currentUserId && String(item.user_id) === String(currentUserId);
+    const headerStyle = isOwner ? 'style="color: #ffd700;"' : '';
+
     return `
         <div class="workshop-item" data-index="${index}">
-            <div class="item-header">
-                <h4>${escapeHtml(item.name || '未命名')}</h4>
+            <div class="item-header" ${headerStyle}>
+                <h4 ${headerStyle}>${escapeHtml(item.name || '未命名')}</h4>
                 <div class="item-badges" style="display:flex; gap:4px;">
                     ${typeHtml}
                 </div>
@@ -437,9 +442,10 @@ export function createWorkshopItemCard(item, index) {
  * 创建详情弹窗内容 HTML
  * @param {Object} item - 条目数据
  * @param {number} index - 条目索引
+ * @param {string} [currentUserId] - 当前登录用户 ID
  * @returns {{ body: string, footer: string }}
  */
-export function createDetailModalContent(item, index) {
+export function createDetailModalContent(item, index, currentUserId) {
     // 处理 tags
     let tagsHtml = '';
     if (item.tags) {
@@ -494,6 +500,14 @@ export function createDetailModalContent(item, index) {
         </div>
     `;
 
+    // 判断是否为自己上传的 MOD
+    const isOwner = currentUserId && String(item.user_id) === String(currentUserId);
+    const deleteButtonHtml = isOwner ? `
+        <button class="workshop-btn secondary" id="modal-delete-btn" data-index="${index}" style="color: #ff6b6b; border-color: #ff6b6b;">
+            <i class="fa-solid fa-trash-can"></i> 删除
+        </button>
+    ` : '';
+
     const footer = `
         <button class="workshop-btn primary" id="modal-download-btn" data-index="${index}">
             <i class="fa-solid fa-download"></i> 下载
@@ -501,6 +515,7 @@ export function createDetailModalContent(item, index) {
         <button class="workshop-btn secondary" id="modal-inject-btn" data-index="${index}">
             <i class="fa-solid fa-file-import"></i> 注入
         </button>
+        ${deleteButtonHtml}
     `;
 
     return { body, footer };
