@@ -345,11 +345,10 @@ export class EventBinder {
                 }
             });
 
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
 
         // 取消全选 IndexedDB（只取消当前键的子项）
-)
         $(document).on('click', '#idb-deselect-all', () => {
             const checkboxes = $('#indexeddb-list input[type="checkbox"]');
             checkboxes.prop('checked', false);
