@@ -1377,21 +1377,21 @@
 }
 
 /* ==================== 滚动条样式 ==================== */
-.workshop-container ::-webkit-scrollbar {
+.workshop-container::-webkit-scrollbar {
     width: 8px;
 }
 
-.workshop-container ::-webkit-scrollbar-track {
+.workshop-container::-webkit-scrollbar-track {
     background: var(--workshop-bg);
     border-radius: 4px;
 }
 
-.workshop-container ::-webkit-scrollbar-thumb {
+.workshop-container::-webkit-scrollbar-thumb {
     background: var(--workshop-border);
     border-radius: 4px;
 }
 
-.workshop-container ::-webkit-scrollbar-thumb:hover {
+.workshop-container::-webkit-scrollbar-thumb:hover {
     background: var(--workshop-secondary);
 }
 

@@ -21,7 +21,7 @@ export function createMainPanel(authButtonHtml) {
                     <div class="workshop-title">
                         <i class="fa-solid fa-store"></i>
                         <h2>酒馆创意工坊</h2>
-                        <a href="https://github.com/CyrilPeng/SillyTavern-Workshop" target="_blank" class="github-link" title="请给个Star✨~高星项目可以申请到更好的服务器来服务大家">
+                        <a href="https://github.com/CyrilPeng/SillyTavern-Workshop" target="_blank" class="github-link" title="请给个 Star ✨~ 高星项目可以申请到更好的服务器来服务大家">
                             <i class="fa-brands fa-github"></i>
                         </a>
                     </div>

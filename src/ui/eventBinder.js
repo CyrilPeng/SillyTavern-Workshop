@@ -302,12 +302,20 @@ export class EventBinder {
         // 全选 IndexedDB
         $(document).on('click', '#idb-select-all', () => {
             const checkboxes = $('#indexeddb-list input[type="checkbox"]');
+            if (checkboxes.length === 0) return;
+
+            // 检查是否已选择数据表和键
+            if (!state.currentIDBStore || !state.currentIDBKey || state.currentIDBKeyValue === null) {
+                showToast('请先选择数据表和键', 'warning');
+                return;
+            }
+
             checkboxes.prop('checked', true);
 
-            const { dbName, storeName } = state.currentIDBStore || {};
+            const { dbName, storeName } = state.currentIDBStore;
             const currentKey = state.currentIDBKey;
 
-            checkboxes.closest('.checkbox-item').each((_, el) => {
+            checkboxes.closest('.checkbox').each((_, el) => {
                 const $item = $(el);
                 const itemId = $item.data('id');
                 const subIndex = parseInt($item.data('sub-index'));
@@ -496,8 +504,8 @@ export class EventBinder {
             showToast('请输入版本号', 'warning');
             return;
         }
-        if (!/^\d{1,2}\.\d{1,2}$/.test(formData.version)) {
-            showToast('版本号格式错误，应为 XX.XX', 'warning');
+        if (!/^\d+\.\d+$/.test(formData.version)) {
+            showToast('版本号格式错误，应为 X.X 或 XX.XX', 'warning');
             return;
         }
         if (!formData.fileContent) {

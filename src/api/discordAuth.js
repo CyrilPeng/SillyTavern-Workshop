@@ -55,9 +55,16 @@ export class DiscordAuthModule {
         const token = this.getToken();
         if (!token) return null;
         try {
+            // 验证 Token 格式（JWT 应该有三部分）
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                console.warn('[DiscordAuthModule] Token 格式无效: 不是有效的 JWT');
+                return null;
+            }
+
             // 解析 JWT Payload
-            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-            return payload.id || null;
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return payload.id || payload.sub || null;
         } catch (e) {
             console.error('[DiscordAuthModule] 获取 User ID 失败:', e);
             return null;
@@ -105,13 +112,20 @@ export class DiscordAuthModule {
 
         // 简单的格式校验
         if (!token.startsWith("eyJ") || token.split('.').length !== 3) {
-            alert("Token 格式不正确，请确保复制了完整的内容。");
+            alert("Token 格式不正确，请确保复制完整的内容。");
             return;
         }
 
         try {
+            // 验证 Token 格式（JWT 应该有三部分）
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                alert("Token 格式无效：不是有效的 JWT。");
+                return;
+            }
+
             // 解析 JWT 获取用户名 (仅用于前端显示)
-            const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
             const username = payload.username || "User";
 
             // 保存
