@@ -450,6 +450,7 @@ export class WorldInfoService {
 
 // 导出单例工厂函数
 let serviceInstance = null;
+let initialized = false;
 
 /**
  * 获取 WorldInfoService 单例
@@ -459,6 +460,7 @@ let serviceInstance = null;
 export function getWorldInfoService(getContext) {
     if (!serviceInstance) {
         serviceInstance = new WorldInfoService(getContext);
+        initialized = true;
     }
     return serviceInstance;
 }

@@ -779,6 +779,7 @@ export class UIRenderer {
 
 // 导出单例
 let rendererInstance = null;
+let initialized = false;
 
 /**
  * 获取 UIRenderer 单例
@@ -788,6 +789,7 @@ let rendererInstance = null;
 export function getUIRenderer(services) {
     if (!rendererInstance) {
         rendererInstance = new UIRenderer(services);
+        initialized = true;
     }
     return rendererInstance;
 }

@@ -491,6 +491,7 @@ export class DatabaseService {
 
 // 导出单例
 let serviceInstance = null;
+let initialized = false;
 
 /**
  * 获取 DatabaseService 单例
@@ -499,6 +500,7 @@ let serviceInstance = null;
 export function getDatabaseService() {
     if (!serviceInstance) {
         serviceInstance = new DatabaseService();
+        initialized = true;
     }
     return serviceInstance;
 }

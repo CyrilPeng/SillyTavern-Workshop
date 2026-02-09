@@ -205,6 +205,7 @@ export class WorkshopApi {
 
 // 导出单例
 let apiInstance = null;
+let initialized = false;
 
 /**
  * 获取 WorkshopApi 单例
@@ -214,6 +215,7 @@ let apiInstance = null;
 export function getWorkshopApi(options) {
     if (!apiInstance) {
         apiInstance = new WorkshopApi(options);
+        initialized = true;
     }
     return apiInstance;
 }

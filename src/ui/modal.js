@@ -269,6 +269,7 @@ export class ModalManager {
 
 // 导出单例
 let modalManagerInstance = null;
+let initialized = false;
 
 /**
  * 获取 ModalManager 单例
@@ -277,6 +278,7 @@ let modalManagerInstance = null;
 export function getModalManager() {
     if (!modalManagerInstance) {
         modalManagerInstance = new ModalManager();
+        initialized = true;
     }
     return modalManagerInstance;
 }

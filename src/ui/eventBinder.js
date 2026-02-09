@@ -31,6 +31,11 @@ export class EventBinder {
 
         /** @type {Array} 缓存的世界书词条 */
         this.cachedWorldInfoEntries = [];
+
+        /** @type {Function} 防抖后的更新预览函数 */
+        this.debouncedUpdatePreview = debounce(() => {
+            this.updatePreviewFromSelection();
+        }, 150);
     }
 
     /**
@@ -146,7 +151,7 @@ export class EventBinder {
                 state.selectedWorldInfoEntries.delete(index);
             }
 
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
 
         // 全选世界书
@@ -156,14 +161,14 @@ export class EventBinder {
             $('#worldInfo-list .checkbox-item').each((_, el) => {
                 state.selectedWorldInfoEntries.add(parseInt($(el).data('index')));
             });
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
 
         // 取消全选世界书
         $(document).on('click', '#wi-deselect-all', () => {
             $('#worldInfo-list input[type="checkbox"]').prop('checked', false);
             state.selectedWorldInfoEntries.clear();
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
     }
 
@@ -181,7 +186,7 @@ export class EventBinder {
                 state.selectedLocalStorageKeys.delete(key);
             }
 
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
 
         // 全选 LocalStorage
@@ -190,14 +195,14 @@ export class EventBinder {
             $('#localstorage-list .checkbox-item').each((_, el) => {
                 state.selectedLocalStorageKeys.add($(el).data('key'));
             });
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
 
         // 取消全选 LocalStorage
         $(document).on('click', '#ls-deselect-all', () => {
             $('#localstorage-list input[type="checkbox"]').prop('checked', false);
             state.selectedLocalStorageKeys.clear();
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
     }
 
@@ -344,6 +349,7 @@ export class EventBinder {
         });
 
         // 取消全选 IndexedDB（只取消当前键的子项）
+)
         $(document).on('click', '#idb-deselect-all', () => {
             const checkboxes = $('#indexeddb-list input[type="checkbox"]');
             checkboxes.prop('checked', false);
@@ -355,7 +361,7 @@ export class EventBinder {
                 delete state.idbDataCache[itemId];
             });
 
-            this.updatePreviewFromSelection();
+            this.debouncedUpdatePreview();
         });
     }
 
